@@ -767,6 +767,18 @@ namespace ACNHPoker
                 0xECC4, // Harvey's island fence
             */
         };
+        private static readonly HashSet<UInt16> isFenceWithVariation = new HashSet<UInt16>{
+            0x0D4A, // vertical-board fence
+            0x1105, // iron fence
+            0x1457, // zen fence
+            0x1458, // large lattice fence
+            0x2DBF, // simple wooden fence
+            0x2DC0, // lattice fence
+            0x325E, // wedding fence
+            0x39A4, // frozen fence
+            0x39A6, // corrugated iron fence
+            0x39A7, // park fence
+        };
         private static readonly HashSet<UInt16> isFlowerSet = new HashSet<UInt16>
         {
             0x0900, // red cosmos
@@ -1115,6 +1127,10 @@ namespace ACNHPoker
         public static bool isBush(UInt16 item)
         {
             return isBushSet.Contains(item);
+        }
+        public static bool hasFenceWithVariation(UInt16 item)
+        {
+            return isFenceWithVariation.Contains(item);
         }
     }
 }

@@ -178,11 +178,6 @@ namespace ACNHPoker
                 string path;
                 if (VarRow != null & source != recipeSource)
                 {
-                    path = Utilities.imagePath + VarRow["iName"] + ".png";
-                    if (File.Exists(path))
-                    {
-                        return path;
-                    }
                     string main = (data & 0xF).ToString();
                     string sub = (((data & 0xFF) - (data & 0xF)) / 0x20).ToString();
                     //Debug.Print("data " + data.ToString("X") + " Main " + main + " Sub " + sub);
@@ -192,6 +187,11 @@ namespace ACNHPoker
                         return path;
                     }
 
+                    path = Utilities.imagePath + VarRow["iName"] + ".png";
+                    if (File.Exists(path))
+                    {
+                        return path;
+                    }
                 }
 
                 string imageName = row[1].ToString();
@@ -205,14 +205,14 @@ namespace ACNHPoker
                     }
                 }
 
-                path = Utilities.imagePath + imageName + ".png";
+                path = Utilities.imagePath + imageName + "_Remake_0_0.png";
                 if (File.Exists(path))
                 {
                     return path;
                 }
                 else
                 {
-                    path = Utilities.imagePath + imageName + "_Remake_0_0.png";
+                    path = Utilities.imagePath + imageName + ".png";
                     if (File.Exists(path))
                     {
                         return path;
@@ -254,12 +254,9 @@ namespace ACNHPoker
                         hexMode_Click(sender, e);
                     }
                     var btn = (inventorySlot)owner.SourceControl;
+
                     selectedItem.setup(btn);
-                    if (selection != null)
-                    {
-                        selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), languageSetting);
-                    }
-                    updateSelectedItemInfo(selectedItem.displayItemName(), selectedItem.displayItemID(), selectedItem.displayItemData());
+
                     if (selectedItem.fillItemID() == "FFFE")
                     {
                         hexMode_Click(sender, e);
@@ -271,6 +268,14 @@ namespace ACNHPoker
                         customAmountTxt.Text = Utilities.precedingZeros(selectedItem.fillItemData(), 8);
                         customIdTextbox.Text = Utilities.precedingZeros(selectedItem.fillItemID(), 4);
                     }
+
+                    string hexValue = Utilities.precedingZeros(customAmountTxt.Text, 8);
+
+                    if (selection != null)
+                    {
+                        selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), languageSetting, Utilities.precedingZeros(hexValue, 8));
+                    }
+                    updateSelectedItemInfo(selectedItem.displayItemName(), selectedItem.displayItemID(), selectedItem.displayItemData());
                     if (sound)
                         System.Media.SystemSounds.Asterisk.Play();
                 }

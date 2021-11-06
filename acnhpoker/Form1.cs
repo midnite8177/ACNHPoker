@@ -19,7 +19,7 @@ namespace ACNHPoker
     {
         #region variable
         private static Socket s;
-        private string version = "ACNH Poker R18.1 for v2.0.0";
+        private string version = "ACNH Poker R18.2 for v2.0.0";
         private inventorySlot selectedButton;
         private Villager[] V = null;
         private Button[] villagerButton = null;
@@ -28,6 +28,7 @@ namespace ACNHPoker
         private static byte[] header;
         private bool blocker = false;
         private bool firstWarning = false;
+        private bool imageDownloaderStarted = false;
         private int selectedSlot = 1;
         private Button selectedVillagerButton = null;
         private DataGridViewRow lastRow;
@@ -49,6 +50,7 @@ namespace ACNHPoker
         private variation selection = null;
         public map Map = null;
         public MapRegenerator R = null;
+        public Freezer F = null;
         private miniMap MiniMap = null;
         private USBBot bot = null;
         private bool offline = true;
@@ -125,6 +127,18 @@ namespace ACNHPoker
             setting = new Setting(this, overrideSetting, disableValidation, sound);
             if (overrideSetting)
                 setting.overrideAddresses();
+
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\" + "img") || config.AppSettings.Settings["ForcedImageDownload"].Value == "true")
+            {
+                config.AppSettings.Settings["ForcedImageDownload"].Value = "false";
+                config.Save(ConfigurationSaveMode.Minimal);
+                ImageDownloader imageDownloader = new ImageDownloader();
+                imageDownloader.ShowDialog();
+                imageDownloaderStarted = true;
+            }
+
+            if (imageDownloaderStarted)
+                Application.Restart();
 
             if (File.Exists(Utilities.itemPath))
             {
@@ -396,12 +410,6 @@ namespace ACNHPoker
             favGridView.Columns["Name"].Width = 195;
             favGridView.Columns["Image"].Width = 128;
 
-
-            if (!Directory.Exists(Directory.GetCurrentDirectory() + "\\" + "img"))
-            {
-                ImageDownloader imageDownloader = new ImageDownloader();
-                imageDownloader.ShowDialog();
-            }
 
             currentPanel = itemModePanel;
 
@@ -859,6 +867,15 @@ namespace ACNHPoker
                 R = new MapRegenerator(s, this, sound);
                 //this.Hide();
                 R.Show();
+            }
+        }
+
+        private void freezerBtn_Click(object sender, EventArgs e)
+        {
+            if (R == null)
+            {
+                F = new Freezer(s, this, sound);
+                F.Show();
             }
         }
 

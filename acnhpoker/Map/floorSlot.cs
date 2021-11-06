@@ -343,6 +343,10 @@ namespace ACNHPoker
             {
                 this.BackColor = Color.DarkKhaki;
             }
+            else if (flag2 == "20")
+            {
+                this.BackColor = Color.PaleGreen;
+            }
             else if (ItemAttr.hasDurability(itemID)) //Tools
             {
                 this.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
@@ -583,7 +587,7 @@ namespace ACNHPoker
                     Image img = PlaceImageOverImage(background, icon, background.Width - (imageSize - 5), background.Width - (imageSize - 5), 1);
                     return (Image)(new Bitmap(img, size));
                 }
-                else if (itemID == 0x315A || itemID == 0x1618) // Wall-Mount
+                else if (itemID == 0x315A || itemID == 0x1618 || itemID == 0x342F) // Wall-Mount
                 {
                     if (File.Exists(containItemPath))
                     {
@@ -708,7 +712,7 @@ namespace ACNHPoker
                     Image img = PlaceImageOverImage(background, icon, background.Width - (imageSize - 5), background.Width - (imageSize - 5), 1);
                     return (Image)(new Bitmap(img, size));
                 }
-                else if (itemID == 0x315A || itemID == 0x1618) // Wall-Mount
+                else if (itemID == 0x315A || itemID == 0x1618 || itemID == 0x342F) // Wall-Mount
                 {
                     if (File.Exists(containItemPath))
                     {

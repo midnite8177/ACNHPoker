@@ -255,6 +255,11 @@ https://youtu.be/-zztRgmtXig
 	* Added the new reactions to the reaction wheel.
 	* Added a [!] to PhotoStudio items that would be stuck if dropped.
 	* Added the "Max Walk Speed" to the "Other" tab. Function similar to the old "Walk speed". Thanks to Red.
+* R18.2
+	* Added the "Ceiling Furniture Display".
+	* Fixed the spawning bug of fence variation.
+	* Rework on the ImageDownloader to hopefully mitigate crash.
+	* Finally added the freezer menu.
 	
 ## Contributing
 

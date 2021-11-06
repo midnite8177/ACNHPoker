@@ -21,7 +21,7 @@ namespace ACNHPoker
         public static UInt32 ItemSlotBase = masterAddress;
         public static UInt32 ItemSlot21Base = masterAddress - 0xB8;
 
-
+        //AE6022CC
 
         public static UInt32 MasterRecyclingBase = 0xAEA5E978;
         public static UInt32 MasterRecycling21Base = MasterRecyclingBase + 0xA0;
@@ -2743,7 +2743,7 @@ namespace ACNHPoker
 
         public static byte[] FreezeClear() => Encode("freezeClear");
 
-        public static byte[] FreezeRate() => Encode("configure freezeRate 500");
+        public static byte[] FreezeRate(string rate) => Encode("configure freezeRate " + rate);
 
         public static string getVersion(Socket socket)
         {

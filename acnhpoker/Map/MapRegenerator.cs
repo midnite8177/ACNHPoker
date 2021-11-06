@@ -60,6 +60,8 @@ namespace ACNHPoker
                     Log.logEvent("Regen", "A Shiny Has Appeared!");
                 }
 
+                Debug.Print(Utilities.GetFreezeCount(s).ToString());
+
                 Log.logEvent("Regen", "RegenForm Started Successfully");
             }
             catch (Exception ex)
@@ -1663,95 +1665,6 @@ namespace ACNHPoker
                 RegenThread.Abort();
         }
 
-        #endregion
-
-        #region Debug
-        private void readDodoBtn_Click(object sender, EventArgs e)
-        {
-            controller.setupDodo();
-        }
-
-        private void clearBtn_Click(object sender, EventArgs e)
-        {
-            controller.clearDodo();
-        }
-
-        private void debugBtn_Click(object sender, EventArgs e)
-        {
-            FinMsg.Text = "";
-            delayTime = int.Parse(delay.Text);
-
-            //updateVisitorName();
-
-            OpenFileDialog file = new OpenFileDialog()
-            {
-                Filter = "New Horizons Fasil (*.nhf)|*.nhf|All files (*.*)|*.*",
-            };
-
-            Configuration config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
-
-            string savepath;
-
-            if (config.AppSettings.Settings["LastLoad"].Value.Equals(string.Empty))
-                savepath = Directory.GetCurrentDirectory() + @"\save";
-            else
-                savepath = config.AppSettings.Settings["LastLoad"].Value;
-
-            if (Directory.Exists(savepath))
-            {
-                file.InitialDirectory = savepath;
-            }
-            else
-            {
-                file.InitialDirectory = @"C:\";
-            }
-
-            if (file.ShowDialog() != DialogResult.OK)
-                return;
-
-            string[] temp = file.FileName.Split('\\');
-            string path = "";
-            for (int i = 0; i < temp.Length - 1; i++)
-                path = path + temp[i] + "\\";
-
-            config.AppSettings.Settings["LastLoad"].Value = path;
-            config.Save(ConfigurationSaveMode.Minimal);
-
-            byte[] data = File.ReadAllBytes(file.FileName);
-
-            UInt32 address = Utilities.mapZero;
-
-            string[] name = file.FileName.Split('\\');
-
-            Log.logEvent("Regen", "Regen3 Started: " + name[name.Length - 1]);
-
-            //string dodo = controller.setupDodo();
-            //Log.logEvent("Regen", "Regen3 Dodo: " + dodo);
-
-            byte[][] b = new byte[42][];
-
-            for (int i = 0; i < 42; i++)
-            {
-                b[i] = new byte[0x2000];
-                Buffer.BlockCopy(data, i * 0x2000, b[i], 0x0, 0x2000);
-                Utilities.SendString(s, Utilities.Freeze((uint)(address + (i * 0x2000)), b[i]));
-                Thread.Sleep(500);
-            }
-            Debug.Print(Utilities.GetFreezeCount(s).ToString());
-        }
-
-        private void clear_Click(object sender, EventArgs e)
-        {
-            Utilities.SendString(s, Utilities.FreezeClear());
-            Thread.Sleep(500);
-            Debug.Print(Utilities.GetFreezeCount(s).ToString());
-        }
-
-        private void slowBtn_Click(object sender, EventArgs e)
-        {
-            Utilities.SendString(s, Utilities.FreezeRate());
-            Thread.Sleep(500);
-        }
         #endregion
     }
 }

@@ -176,7 +176,7 @@ namespace ACNHPoker
                 PasteArea = new ToolStripMenuItem("Paste Area", null, pasteAreaToolStripMenuItem_Click);
                 PasteArea.ForeColor = Color.White;
 
-                //this.KeyPreview = true;
+                this.KeyPreview = true;
                 Log.logEvent("Map", "MapForm Started Successfully");
             }
             catch (Exception ex)
@@ -445,6 +445,10 @@ namespace ACNHPoker
             string Path2;
             string Path3;
             string Path4;
+            string ContainPath = "";
+
+            string front = Utilities.precedingZeros(Data.ToString("X"), 8).Substring(0, 4);
+            string back = Utilities.precedingZeros(Data.ToString("X"), 8).Substring(4, 4);
 
             if (P1Id == "FFFD")
                 Path1 = GetImagePathFromID(P1Data, source);
@@ -452,6 +456,15 @@ namespace ACNHPoker
             {
                 Path1 = GetImagePathFromID(P1Data, recipeSource, Data);
                 Name = GetNameFromID(P1Data, recipeSource);
+            }
+            else if(P1Id == "315A" || P1Id == "1618" || P1Id == "342F")
+            {
+                Path1 = GetImagePathFromID(itemID, source, Data);
+                ContainPath = GetImagePathFromID(P1Data, source);
+            }
+            else if (ItemAttr.hasFenceWithVariation(ID))  // Fence Variation
+            {
+                Path1 = GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + front, 16));
             }
             else
                 Path1 = GetImagePathFromID(itemID, source, Data);
@@ -471,7 +484,7 @@ namespace ACNHPoker
             else
                 Path4 = GetImagePathFromID(P4Id, source, IntP4Data);
 
-            btn.setup(Name, ID, Data, IntP2Id, IntP2Data, IntP3Id, IntP3Data, IntP4Id, IntP4Data, Path1, Path2, Path3, Path4, "", flag1, flag2);
+            btn.setup(Name, ID, Data, IntP2Id, IntP2Data, IntP3Id, IntP3Data, IntP4Id, IntP4Data, Path1, Path2, Path3, Path4, ContainPath, flag1, flag2);
         }
 
         #endregion
@@ -503,6 +516,10 @@ namespace ACNHPoker
             string Path2;
             string Path3;
             string Path4;
+            string ContainPath = "";
+
+            string front = Utilities.precedingZeros(Data.ToString("X"), 8).Substring(0, 4);
+            string back = Utilities.precedingZeros(Data.ToString("X"), 8).Substring(4, 4);
 
             if (P1Id == "FFFD")
                 Path1 = GetImagePathFromID(P1Data, source);
@@ -510,6 +527,15 @@ namespace ACNHPoker
             {
                 Path1 = GetImagePathFromID(P1Data, recipeSource, Data);
                 Name = GetNameFromID(P1Data, recipeSource);
+            }
+            else if (P1Id == "315A" || P1Id == "1618" || P1Id == "342F")
+            {
+                Path1 = GetImagePathFromID(itemID, source, Data);
+                ContainPath = GetImagePathFromID(P1Data, source);
+            }
+            else if (ItemAttr.hasFenceWithVariation(ID))  // Fence Variation
+            {
+                Path1 = GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + front, 16));
             }
             else
                 Path1 = GetImagePathFromID(itemID, source, Data);
@@ -529,7 +555,7 @@ namespace ACNHPoker
             else
                 Path4 = GetImagePathFromID(P4Id, source, IntP4Data);
 
-            await btn.setupAsync(Name, ID, Data, IntP2Id, IntP2Data, IntP3Id, IntP3Data, IntP4Id, IntP4Data, Path1, Path2, Path3, Path4, "", flag1, flag2);
+            await btn.setupAsync(Name, ID, Data, IntP2Id, IntP2Data, IntP3Id, IntP3Data, IntP4Id, IntP4Data, Path1, Path2, Path3, Path4, ContainPath, flag1, flag2);
         }
 
         private async Task displayAnchorAsync(byte[][] floorByte)
@@ -904,14 +930,14 @@ namespace ACNHPoker
 
                     if (OverrideDict.ContainsKey(imageName))
                     {
-                        path = imagePath + OverrideDict[imageName] + ".png";
+                        path = imagePath + OverrideDict[imageName] + "_Remake_0_0.png";
                         if (File.Exists(path))
                         {
                             return path;
                         }
                         else
                         {
-                            path = imagePath + OverrideDict[imageName] + "_Remake_0_0.png";
+                            path = imagePath + OverrideDict[imageName] + ".png";
                             if (File.Exists(path))
                             {
                                 return path;
@@ -937,11 +963,6 @@ namespace ACNHPoker
                 string path;
                 if (VarRow != null & source != recipeSource)
                 {
-                    path = imagePath + VarRow["iName"] + ".png";
-                    if (File.Exists(path))
-                    {
-                        return path;
-                    }
                     string main = (data & 0xF).ToString();
                     string sub = (((data & 0xFF) - (data & 0xF)) / 0x20).ToString();
                     //Debug.Print("data " + data.ToString("X") + " Main " + main + " Sub " + sub);
@@ -951,6 +972,11 @@ namespace ACNHPoker
                         return path;
                     }
 
+                    path = imagePath + VarRow["iName"] + ".png";
+                    if (File.Exists(path))
+                    {
+                        return path;
+                    }
                 }
 
                 string imageName = row[1].ToString();
@@ -972,14 +998,14 @@ namespace ACNHPoker
                     }
                 }
 
-                path = imagePath + imageName + ".png";
+                path = imagePath + imageName + "_Remake_0_0.png";
                 if (File.Exists(path))
                 {
                     return path;
                 }
                 else
                 {
-                    path = imagePath + imageName + "_Remake_0_0.png";
+                    path = imagePath + imageName + ".png";
                     if (File.Exists(path))
                     {
                         return path;
@@ -1047,7 +1073,7 @@ namespace ACNHPoker
 
                     if (OverrideDict.ContainsKey(imageName))
                     {
-                        path = imagePath + OverrideDict[imageName] + ".png";
+                        path = imagePath + OverrideDict[imageName] + "_Remake_0_0.png";
                         if (File.Exists(path))
                         {
                             Image img = Image.FromFile(path);
@@ -1058,7 +1084,7 @@ namespace ACNHPoker
                         }
                         else
                         {
-                            path = imagePath + OverrideDict[imageName] + "_Remake_0_0.png";
+                            path = imagePath + OverrideDict[imageName] + ".png";
                             if (File.Exists(path))
                             {
                                 Image img = Image.FromFile(path);
@@ -1070,19 +1096,19 @@ namespace ACNHPoker
                         }
                     }
 
-                    path = imagePath + imageName + ".png";
+                    path = imagePath + imageName + "_Remake_0_0.png";
                     if (File.Exists(path))
                     {
                         Image img = Image.FromFile(path);
+                        e.CellStyle.BackColor = Color.FromArgb(((int)(((byte)(56)))), ((int)(((byte)(77)))), ((int)(((byte)(162)))));
                         e.Value = img;
                     }
                     else
                     {
-                        path = imagePath + imageName + "_Remake_0_0.png";
+                        path = imagePath + imageName + ".png";
                         if (File.Exists(path))
                         {
                             Image img = Image.FromFile(path);
-                            e.CellStyle.BackColor = Color.FromArgb(((int)(((byte)(56)))), ((int)(((byte)(77)))), ((int)(((byte)(162)))));
                             e.Value = img;
                         }
                         else
@@ -1177,7 +1203,16 @@ namespace ACNHPoker
                     }
                     if (selection != null)
                     {
-                        selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng");
+                        string hexValue = "00000000";
+
+                        if (currentDataTable == flowerSource)
+                            hexValue = fieldGridView.Rows[e.RowIndex].Cells["value"].Value.ToString();
+                        else if (currentDataTable == favSource)
+                            hexValue = fieldGridView.Rows[e.RowIndex].Cells["value"].Value.ToString();
+                        else if (currentDataTable == fieldSource)
+                            hexValue = fieldGridView.Rows[e.RowIndex].Cells["value"].Value.ToString();
+
+                        selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng", Utilities.precedingZeros(hexValue, 8));
                     }
                     //updateSelectedItemInfo(selectedItem.displayItemName(), selectedItem.displayItemID(), selectedItem.displayItemData());
 
@@ -1201,7 +1236,7 @@ namespace ACNHPoker
 
                     if (IdTextbox.Text != "")
                     {
-                        if (IdTextbox.Text == "315A" || IdTextbox.Text == "1618") // Wall-Mounted
+                        if (IdTextbox.Text == "315A" || IdTextbox.Text == "1618" || IdTextbox.Text == "342F") // Wall-Mounted
                         {
                             HexTextbox.Text = Utilities.precedingZeros("00" + fieldGridView.Rows[e.RowIndex].Cells["id"].Value.ToString(), 8);
                             selectedItem.setup(name, Convert.ToUInt16(id, 16), Convert.ToUInt32("0x" + HexTextbox.Text, 16), path, true, GetImagePathFromID(fieldGridView.Rows[e.RowIndex].Cells["id"].Value.ToString(), source));
@@ -1690,10 +1725,17 @@ namespace ACNHPoker
             HexTextbox.Text = hexValue;
             FlagTextbox.Text = flag2;
 
+            UInt16 IntId = Convert.ToUInt16("0x" + id, 16);
+            string front = Utilities.precedingZeros(hexValue, 8).Substring(0, 4);
+            string back = Utilities.precedingZeros(hexValue, 8).Substring(4, 4);
+
+
             if (id == "16A2")
                 selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(Utilities.turn2bytes(hexValue), recipeSource), true, "", flag1, flag2);
+            else if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+                selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(id, source, Convert.ToUInt32("0x" + front, 16)), true, "", flag1, flag2);
             else
-                selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(id, source), true, "", flag1, flag2);
+                selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(id, source, Convert.ToUInt32("0x" + hexValue, 16)), true, "", flag1, flag2);
         }
 
         private void KeyboardKeyDown(object sender, KeyEventArgs e)
@@ -1745,6 +1787,20 @@ namespace ACNHPoker
                     fieldGridView.CurrentCell = fieldGridView.Rows[fieldGridView.CurrentRow.Index + 1].Cells[fieldGridView.CurrentCell.ColumnIndex];
                 }
 
+                if (selection != null)
+                {
+                    string hexValue = "00000000";
+
+                    if (currentDataTable == flowerSource)
+                        hexValue = fieldGridView.Rows[fieldGridView.CurrentRow.Index + 1].Cells["value"].Value.ToString();
+                    else if (currentDataTable == favSource)
+                        hexValue = fieldGridView.Rows[fieldGridView.CurrentRow.Index + 1].Cells["value"].Value.ToString();
+                    else if (currentDataTable == fieldSource)
+                        hexValue = fieldGridView.Rows[fieldGridView.CurrentRow.Index + 1].Cells["value"].Value.ToString();
+
+                    selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng", Utilities.precedingZeros(hexValue, 8));
+                }
+
             }
             else if (e.KeyCode.ToString() == "Home")
             {
@@ -1771,6 +1827,20 @@ namespace ACNHPoker
 
                     KeyPressSetup(fieldGridView.CurrentRow.Index - 1);
                     fieldGridView.CurrentCell = fieldGridView.Rows[fieldGridView.CurrentRow.Index - 1].Cells[fieldGridView.CurrentCell.ColumnIndex];
+                }
+
+                if (selection != null)
+                {
+                    string hexValue = "00000000";
+
+                    if (currentDataTable == flowerSource)
+                        hexValue = fieldGridView.Rows[fieldGridView.CurrentRow.Index - 1].Cells["value"].Value.ToString();
+                    else if (currentDataTable == favSource)
+                        hexValue = fieldGridView.Rows[fieldGridView.CurrentRow.Index - 1].Cells["value"].Value.ToString();
+                    else if (currentDataTable == fieldSource)
+                        hexValue = fieldGridView.Rows[fieldGridView.CurrentRow.Index - 1].Cells["value"].Value.ToString();
+
+                    selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng", Utilities.precedingZeros(hexValue, 8));
                 }
             }
         }
@@ -2542,8 +2612,15 @@ namespace ACNHPoker
                     HexTextbox.Text = hexValue;
                     FlagTextbox.Text = flag2;
 
+                    UInt16 IntId = Convert.ToUInt16("0x" + id, 16);
+                    string front = Utilities.precedingZeros(hexValue, 8).Substring(0, 4);
+                    string back = Utilities.precedingZeros(hexValue, 8).Substring(4, 4);
+
+
                     if (id == "16A2")
                         selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(Utilities.turn2bytes(hexValue), recipeSource), true, "", flag1, flag2);
+                    else if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+                        selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(id, source, Convert.ToUInt32("0x" + front, 16)), true, "", flag1, flag2);
                     else
                         selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(id, source, Convert.ToUInt32("0x" + hexValue, 16)), true, "", flag1, flag2);
                     if (sound)
@@ -2572,13 +2649,21 @@ namespace ACNHPoker
             string itemData = Utilities.precedingZeros(HexTextbox.Text, 8);
             string flag2 = Utilities.precedingZeros(FlagTextbox.Text, 2);
 
-            if (itemID.Equals("315A") || itemID.Equals("1618"))
+            UInt16 IntId = Convert.ToUInt16("0x" + itemID, 16);
+            string front = Utilities.precedingZeros(itemData, 8).Substring(0, 4);
+            string back = Utilities.precedingZeros(itemData, 8).Substring(4, 4);
+
+            if (itemID.Equals("315A") || itemID.Equals("1618") || itemID.Equals("342F"))
             {
                 selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source), true, GetImagePathFromID(Utilities.turn2bytes(itemData), source), "00", flag2);
             }
             else if (itemID.Equals("16A2"))
             {
                 selectedItem.setup(GetNameFromID(itemID, recipeSource), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(Utilities.turn2bytes(itemData), recipeSource), true, "", "00", flag2);
+            }
+            else if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+            {
+                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + front, 16)), true, "", "00", flag2);
             }
             else
             {
@@ -2598,13 +2683,21 @@ namespace ACNHPoker
             string itemData = Utilities.precedingZeros(hexValue, 8);
             string flag2 = Utilities.precedingZeros(FlagTextbox.Text, 2);
 
-            if (itemID.Equals("315A") || itemID.Equals("1618"))
+            UInt16 IntId = Convert.ToUInt16("0x" + itemID, 16);
+            string front = Utilities.precedingZeros(itemData, 8).Substring(0, 4);
+            string back = Utilities.precedingZeros(itemData, 8).Substring(4, 4);
+
+            if (itemID.Equals("315A") || itemID.Equals("1618") || itemID.Equals("342F"))
             {
                 selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source), true, GetImagePathFromID(Utilities.turn2bytes(itemData), source), "00", flag2);
             }
             else if (itemID.Equals("16A2"))
             {
                 selectedItem.setup(GetNameFromID(itemID, recipeSource), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(Utilities.turn2bytes(itemData), recipeSource), true, "", "00", flag2);
+            }
+            else if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+            {
+                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + front, 16)), true, "", "00", flag2);
             }
             else
             {
@@ -3541,7 +3634,13 @@ namespace ACNHPoker
             selection.Show();
             selection.Location = new System.Drawing.Point(this.Location.X + 533, this.Location.Y + 660);
             string id = Utilities.precedingZeros(selectedItem.fillItemID(), 4);
-            if (id == "315A" || id == "1618")
+            string value = Utilities.precedingZeros(selectedItem.fillItemData(), 8);
+            UInt16 IntId = Convert.ToUInt16("0x" + id, 16);
+            if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+            {
+                selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng", value);
+            }
+            else if (id == "315A" || id == "1618" || id == "342F")
             {
                 selection.receiveID(Utilities.turn2bytes(selectedItem.fillItemData()), "eng");
             }
@@ -3574,7 +3673,7 @@ namespace ACNHPoker
             }
             else if (type == 1) // Right click
             {
-                if (IdTextbox.Text == "315A" || IdTextbox.Text == "1618")
+                if (IdTextbox.Text == "315A" || IdTextbox.Text == "1618" || IdTextbox.Text == "342F")
                 {
                     string count = translateVariationValue(select.fillItemData()) + Utilities.precedingZeros(select.fillItemID(), 4);
                     HexTextbox.Text = count;
