@@ -32,7 +32,7 @@ namespace ACNHPoker
         }
         private void PeekBtn_Click(object sender, EventArgs e)
         {
-            byte[] AddressBank = Utilities.peekAddress(s, bot, Convert.ToInt64(debugAddress.Text, 16), 160);
+            byte[] AddressBank = Utilities.peekAddress(s, bot, Convert.ToInt32(debugAddress.Text, 16), 160);
 
             byte[] firstBytes = new byte[4];
             byte[] secondBytes = new byte[4];
@@ -513,6 +513,60 @@ namespace ACNHPoker
         {
             string bank = "";
             recipeGridView.Sort(recipeGridView.Columns["id"], ListSortDirection.Ascending);
+
+            for (int i = 0; i < recipeGridView.Rows.Count; i++)
+            {
+                string recipeid = recipeGridView.Rows[i].Cells["id"].Value.ToString();
+
+                bank = bank + Utilities.flip("16A2") + "0000" + Utilities.flip(recipeid) + "0000";
+            }
+
+            byte[] save = Utilities.stringToByte(bank);
+
+
+            SaveFileDialog file = new SaveFileDialog()
+            {
+                Filter = "New Horizons Bulk Spawn (*.nhbs)|*.nhbs",
+            };
+
+            Configuration config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
+
+            string savepath;
+
+            if (config.AppSettings.Settings["LastSave"].Value.Equals(string.Empty))
+                savepath = Directory.GetCurrentDirectory() + @"\save";
+            else
+                savepath = config.AppSettings.Settings["LastSave"].Value;
+
+            if (Directory.Exists(savepath))
+            {
+                file.InitialDirectory = savepath;
+            }
+            else
+            {
+                file.InitialDirectory = @"C:\";
+            }
+
+            if (file.ShowDialog() != DialogResult.OK)
+                return;
+
+            string[] temp = file.FileName.Split('\\');
+            string path = "";
+            for (int i = 0; i < temp.Length - 1; i++)
+                path = path + temp[i] + "\\";
+
+            config.AppSettings.Settings["LastSave"].Value = path;
+            config.Save(ConfigurationSaveMode.Minimal);
+
+            File.WriteAllBytes(file.FileName, save);
+            if (sound)
+                System.Media.SystemSounds.Asterisk.Play();
+        }
+
+        private void button13_Click_1(object sender, EventArgs e)
+        {
+            string bank = "";
+            recipeGridView.Sort(recipeGridView.Columns["eng"], ListSortDirection.Ascending);
 
             for (int i = 0; i < recipeGridView.Rows.Count; i++)
             {

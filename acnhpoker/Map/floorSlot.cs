@@ -324,30 +324,8 @@ namespace ACNHPoker
                 this.BackColor = miniMap.GetBackgroundColor(mapX, mapY, false);
             }
 
-            if (flag1 != "00") //Wrapped
-            {
-                if (itemID == 0x16A1) //Inside Bottle
-                {
-                    this.BackColor = Color.LightSalmon;
-                }
-                else if (itemID == 0x16A2) // Recipe
-                {
-                    this.BackColor = Color.LightSalmon;
-                }
-                else
-                {
-                    this.BackColor = Color.LightSalmon;
-                }
-            }
-            else if (flag2 == "04" || flag2 == "24") //Bury
-            {
-                this.BackColor = Color.DarkKhaki;
-            }
-            else if (flag2 == "20")
-            {
-                this.BackColor = Color.PaleGreen;
-            }
-            else if (ItemAttr.hasDurability(itemID)) //Tools
+
+            if (ItemAttr.hasDurability(itemID)) //Tools
             {
                 this.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
                 this.Text = "Dur: " + itemDurability.ToString();
@@ -395,6 +373,30 @@ namespace ACNHPoker
                     this.Text = HexToBinary(secondByte) + "-" + HexToBinary(firstByte);
                     //System.Diagnostics.Debug.Print(secondByte + " " + firstByte + " " + HexToBinary(secondByte) + " " + HexToBinary(firstByte));
                 }
+            }
+
+            if (flag1 != "00") //Wrapped
+            {
+                if (itemID == 0x16A1) //Inside Bottle
+                {
+                    this.BackColor = Color.LightSalmon;
+                }
+                else if (itemID == 0x16A2) // Recipe
+                {
+                    this.BackColor = Color.LightSalmon;
+                }
+                else
+                {
+                    this.BackColor = Color.LightSalmon;
+                }
+            }
+            else if (flag2 == "04" || flag2 == "24") //Bury
+            {
+                this.BackColor = Color.DarkKhaki;
+            }
+            else if (flag2 == "20")
+            {
+                this.BackColor = Color.Green;
             }
             else if (locked)
             {
