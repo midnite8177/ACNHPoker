@@ -19,7 +19,7 @@ namespace ACNHPoker
     {
         #region variable
         private static Socket s;
-        private string version = "ACNH Poker R18.2 for v2.0.0";
+        private string version = "ACNH Poker R18.3 for v2.0.0";
         private inventorySlot selectedButton;
         private Villager[] V = null;
         private Button[] villagerButton = null;
@@ -28,7 +28,6 @@ namespace ACNHPoker
         private static byte[] header;
         private bool blocker = false;
         private bool firstWarning = false;
-        private bool imageDownloaderStarted = false;
         private int selectedSlot = 1;
         private Button selectedVillagerButton = null;
         private DataGridViewRow lastRow;
@@ -134,11 +133,14 @@ namespace ACNHPoker
                 config.Save(ConfigurationSaveMode.Minimal);
                 ImageDownloader imageDownloader = new ImageDownloader();
                 imageDownloader.ShowDialog();
-                imageDownloaderStarted = true;
             }
 
-            if (imageDownloaderStarted)
+            if (config.AppSettings.Settings["RestartRequired"].Value == "true")
+            {
+                config.AppSettings.Settings["RestartRequired"].Value = "false";
+                config.Save(ConfigurationSaveMode.Minimal);
                 Application.Restart();
+            }
 
             if (File.Exists(Utilities.itemPath))
             {
@@ -414,6 +416,9 @@ namespace ACNHPoker
             currentPanel = itemModePanel;
 
             LanguageSetup(config.AppSettings.Settings["language"].Value);
+
+            Utilities.buildDictionary();
+
             this.KeyPreview = true;
         }
         private Dictionary<string, string> CreateOverride(string path)

@@ -1,5 +1,6 @@
 ﻿using Ionic.Zip;
 using System;
+using System.Configuration;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -16,6 +17,8 @@ namespace ACNHPoker
 
         private void button2_Click(object sender, EventArgs e)
         {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
+            config.AppSettings.Settings["RestartRequired"].Value = "false";
             this.Close();
         }
 
@@ -55,6 +58,9 @@ namespace ACNHPoker
 
         private void extractHere()
         {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
+            config.AppSettings.Settings["RestartRequired"].Value = "true";
+
             try
             {
                 using (ZipFile archive = new ZipFile(@"" + System.Environment.CurrentDirectory + "\\img.zip"))

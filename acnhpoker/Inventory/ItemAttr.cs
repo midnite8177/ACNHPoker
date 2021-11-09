@@ -885,6 +885,9 @@ namespace ACNHPoker
             0x30C0, // orange-tea-olive start
             0x30C7, // red-camellia start
             0x30CA, // pink-camellia start
+            0x33CE, // pink-plumeria start
+            0x3424, // white-plumeria start
+
         };
         private static readonly HashSet<UInt16> isWrappingPaperSet = new HashSet<UInt16>
         {
@@ -946,6 +949,7 @@ namespace ACNHPoker
                         0x0BE4, // carrot
                         0x3106, // glowing moss
                         0x3107, // vine
+                        0x3684, // otoshidama envelope
     }
             .Union(isCraftMaterialSet)
             .Union(isFenceSet)

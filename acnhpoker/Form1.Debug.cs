@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Configuration;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -613,6 +614,93 @@ namespace ACNHPoker
             config.Save(ConfigurationSaveMode.Minimal);
 
             File.WriteAllBytes(file.FileName, save);
+            if (sound)
+                System.Media.SystemSounds.Asterisk.Play();
+        }
+
+        private void button18_Click_1(object sender, EventArgs e)
+        {
+            OpenFileDialog loadfile = new OpenFileDialog()
+            {
+                Filter = "All files (*.*)|*.*",
+            };
+
+            if (loadfile.ShowDialog() != DialogResult.OK)
+                return;
+
+            string[] temp = loadfile.FileName.Split('\\');
+            string path = "";
+            for (int i = 0; i < temp.Length - 1; i++)
+                path = path + temp[i] + "\\";
+
+            DataTable tempSource = loadItemCSV(loadfile.FileName);
+
+            string bank = "";
+            tempSource.DefaultView.Sort = "id ASC";
+            tempSource.DefaultView.ToTable();
+
+            for (int i = 0; i < tempSource.DefaultView.ToTable().Rows.Count; i++)
+            {
+                string recipeid = tempSource.DefaultView.ToTable().Rows[i].ItemArray[0].ToString();
+
+                bank = bank + Utilities.flip("16A2") + "0000" + Utilities.flip(recipeid) + "0000";
+            }
+
+            byte[] save = Utilities.stringToByte(bank);
+
+
+            SaveFileDialog savefile = new SaveFileDialog()
+            {
+                Filter = "New Horizons Bulk Spawn (*.nhbs)|*.nhbs",
+            };
+
+            if (savefile.ShowDialog() != DialogResult.OK)
+                return;
+
+            File.WriteAllBytes(savefile.FileName, save);
+            if (sound)
+                System.Media.SystemSounds.Asterisk.Play();
+        }
+
+        private void button19_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog loadfile = new OpenFileDialog()
+            {
+                Filter = "All files (*.*)|*.*",
+            };
+
+            if (loadfile.ShowDialog() != DialogResult.OK)
+                return;
+
+            string[] temp = loadfile.FileName.Split('\\');
+            string path = "";
+            for (int i = 0; i < temp.Length - 1; i++)
+                path = path + temp[i] + "\\";
+
+            DataTable tempSource = loadItemCSV(loadfile.FileName);
+
+            string bank = "";
+            tempSource.DefaultView.Sort = "eng ASC";
+
+            for (int i = 0; i < tempSource.DefaultView.ToTable().Rows.Count; i++)
+            {
+                string recipeid = tempSource.DefaultView.ToTable().Rows[i].ItemArray[0].ToString();
+
+                bank = bank + Utilities.flip("16A2") + "0000" + Utilities.flip(recipeid) + "0000";
+            }
+
+            byte[] save = Utilities.stringToByte(bank);
+
+
+            SaveFileDialog savefile = new SaveFileDialog()
+            {
+                Filter = "New Horizons Bulk Spawn (*.nhbs)|*.nhbs",
+            };
+
+            if (savefile.ShowDialog() != DialogResult.OK)
+                return;
+
+            File.WriteAllBytes(savefile.FileName, save);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }

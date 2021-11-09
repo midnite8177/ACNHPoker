@@ -2459,6 +2459,79 @@ namespace ACNHPoker
             updateSelectedItemInfo(selectedItem.displayItemName(), selectedItem.displayItemID(), selectedItem.displayItemData());
         }
 
+        private void customAmountTxt_DoubleClick(object sender, EventArgs e)
+        {
+            if (currentPanel == recipeModePanel || currentPanel == flowerModePanel)
+                return;
+
+            string id = Utilities.precedingZeros(customIdTextbox.Text, 4);
+
+            UInt16 IntId = Convert.ToUInt16("0x" + customIdTextbox.Text, 16);
+
+            if (Utilities.itemkind.ContainsKey(id))
+            {
+                int value = Utilities.CountByKind[Utilities.itemkind[id]];
+
+                if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+                {
+                    string hexValue = "00000000";
+                    if (hexModeBtn.Tag.ToString() == "Normal")
+                    {
+                        int decValue = int.Parse(customAmountTxt.Text) - 1;
+                        if (decValue >= 0)
+                            hexValue = Utilities.precedingZeros(decValue.ToString("X"), 8);
+                    }
+                    else
+                        hexValue = Utilities.precedingZeros(customAmountTxt.Text, 8);
+
+
+                    string front = Utilities.precedingZeros(hexValue, 8).Substring(0, 4);
+                    string back = Utilities.precedingZeros(hexValue, 8).Substring(4, 4);
+
+                    if (hexModeBtn.Tag.ToString() == "Normal")
+                    {
+                        int decValue = value - 1;
+                        if (decValue >= 0)
+                            customAmountTxt.Text = (int.Parse(front + Utilities.precedingZeros(decValue.ToString("X"), 4), System.Globalization.NumberStyles.HexNumber) + 1).ToString();
+                        else
+                            customAmountTxt.Text = (int.Parse(front + Utilities.precedingZeros("0", 4), System.Globalization.NumberStyles.HexNumber) + 1).ToString();
+                    }
+                    else
+                    {
+                        int decValue = value - 1;
+                        if (decValue >= 0)
+                            customAmountTxt.Text = front + Utilities.precedingZeros(decValue.ToString("X"), 4);
+                        else
+                            customAmountTxt.Text = front + Utilities.precedingZeros("0", 4);
+                    }
+                }
+                else
+                {
+                    if (hexModeBtn.Tag.ToString() == "Normal")
+                    {
+                        customAmountTxt.Text = value.ToString();
+                    }
+                    else
+                    {
+                        int decValue = value - 1;
+                        if (decValue >= 0)
+                            customAmountTxt.Text = Utilities.precedingZeros(decValue.ToString("X"), 8);
+                        else
+                            customAmountTxt.Text = Utilities.precedingZeros("0", 8);
+                    }
+                }
+            }
+            else
+            {
+                if (hexModeBtn.Tag.ToString() == "Normal")
+                    customAmountTxt.Text = "1";
+                else
+                    customAmountTxt.Text = "0";
+            }
+
+            customAmountTxt_KeyUp(sender, null);
+        }
+
         private void customIdTextbox_TextChanged(object sender, EventArgs e)
         {
             if (((RichTextBox)sender).Modified)

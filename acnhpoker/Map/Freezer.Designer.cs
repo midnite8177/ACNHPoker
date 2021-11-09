@@ -46,16 +46,26 @@ namespace ACNHPoker
             this.FreezeMapBtn = new System.Windows.Forms.Button();
             this.UnFreezeMapBtn = new System.Windows.Forms.Button();
             this.PleaseWaitPanel = new System.Windows.Forms.Panel();
+            this.WaitMessagebox = new System.Windows.Forms.Label();
             this.MapProgressBar = new System.Windows.Forms.ProgressBar();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.ProgressTimer = new System.Windows.Forms.Timer(this.components);
             this.mainPanel = new System.Windows.Forms.Panel();
             this.FinMsg = new System.Windows.Forms.RichTextBox();
-            this.WaitMessagebox = new System.Windows.Forms.Label();
+            this.mapPanel = new System.Windows.Forms.Panel();
+            this.startBtn = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.yCoordinate = new System.Windows.Forms.RichTextBox();
+            this.miniMapBox = new System.Windows.Forms.PictureBox();
+            this.xCoordinate = new System.Windows.Forms.RichTextBox();
+            this.FreezeMap2Btn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.RateBar)).BeginInit();
             this.PleaseWaitPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.mainPanel.SuspendLayout();
+            this.mapPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.miniMapBox)).BeginInit();
             this.SuspendLayout();
             // 
             // saveMapBtn
@@ -278,6 +288,18 @@ namespace ACNHPoker
             this.PleaseWaitPanel.TabIndex = 238;
             this.PleaseWaitPanel.Visible = false;
             // 
+            // WaitMessagebox
+            // 
+            this.WaitMessagebox.AutoSize = true;
+            this.WaitMessagebox.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.WaitMessagebox.ForeColor = System.Drawing.Color.White;
+            this.WaitMessagebox.Location = new System.Drawing.Point(89, 6);
+            this.WaitMessagebox.Name = "WaitMessagebox";
+            this.WaitMessagebox.Size = new System.Drawing.Size(57, 16);
+            this.WaitMessagebox.TabIndex = 240;
+            this.WaitMessagebox.Text = "testing";
+            this.WaitMessagebox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // MapProgressBar
             // 
             this.MapProgressBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(54)))), ((int)(((byte)(57)))), ((int)(((byte)(63)))));
@@ -339,17 +361,121 @@ namespace ACNHPoker
             this.FinMsg.Text = "";
             this.FinMsg.Visible = false;
             // 
-            // WaitMessagebox
+            // mapPanel
             // 
-            this.WaitMessagebox.AutoSize = true;
-            this.WaitMessagebox.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
-            this.WaitMessagebox.ForeColor = System.Drawing.Color.White;
-            this.WaitMessagebox.Location = new System.Drawing.Point(89, 6);
-            this.WaitMessagebox.Name = "WaitMessagebox";
-            this.WaitMessagebox.Size = new System.Drawing.Size(57, 16);
-            this.WaitMessagebox.TabIndex = 240;
-            this.WaitMessagebox.Text = "testing";
-            this.WaitMessagebox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.mapPanel.Controls.Add(this.FreezeMap2Btn);
+            this.mapPanel.Controls.Add(this.startBtn);
+            this.mapPanel.Controls.Add(this.label4);
+            this.mapPanel.Controls.Add(this.label3);
+            this.mapPanel.Controls.Add(this.yCoordinate);
+            this.mapPanel.Controls.Add(this.miniMapBox);
+            this.mapPanel.Controls.Add(this.xCoordinate);
+            this.mapPanel.Location = new System.Drawing.Point(256, 4);
+            this.mapPanel.Name = "mapPanel";
+            this.mapPanel.Size = new System.Drawing.Size(377, 304);
+            this.mapPanel.TabIndex = 241;
+            // 
+            // startBtn
+            // 
+            this.startBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
+            this.startBtn.FlatAppearance.BorderSize = 0;
+            this.startBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.startBtn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.startBtn.ForeColor = System.Drawing.Color.White;
+            this.startBtn.Location = new System.Drawing.Point(143, 4);
+            this.startBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.startBtn.Name = "startBtn";
+            this.startBtn.Size = new System.Drawing.Size(86, 25);
+            this.startBtn.TabIndex = 236;
+            this.startBtn.Tag = "Start";
+            this.startBtn.Text = "Start";
+            this.formToolTip.SetToolTip(this.startBtn, "Start the regen with only the area selected being ignored.\r\n[WARNING] Item droppe" +
+        "d/placed on the empty space outside the area will be deleted.");
+            this.startBtn.UseVisualStyleBackColor = false;
+            this.startBtn.Click += new System.EventHandler(this.startBtn_Click);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.label4.ForeColor = System.Drawing.Color.White;
+            this.label4.Location = new System.Drawing.Point(140, 48);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(26, 16);
+            this.label4.TabIndex = 238;
+            this.label4.Text = "Y :";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.label3.ForeColor = System.Drawing.Color.White;
+            this.label3.Location = new System.Drawing.Point(49, 48);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(25, 16);
+            this.label3.TabIndex = 236;
+            this.label3.Text = "X :";
+            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // yCoordinate
+            // 
+            this.yCoordinate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(68)))), ((int)(((byte)(75)))));
+            this.yCoordinate.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.yCoordinate.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.yCoordinate.ForeColor = System.Drawing.Color.White;
+            this.yCoordinate.Location = new System.Drawing.Point(166, 46);
+            this.yCoordinate.MaxLength = 3;
+            this.yCoordinate.Multiline = false;
+            this.yCoordinate.Name = "yCoordinate";
+            this.yCoordinate.Size = new System.Drawing.Size(63, 20);
+            this.yCoordinate.TabIndex = 237;
+            this.yCoordinate.Text = "";
+            // 
+            // miniMapBox
+            // 
+            this.miniMapBox.BackColor = System.Drawing.Color.Transparent;
+            this.miniMapBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.miniMapBox.ErrorImage = null;
+            this.miniMapBox.InitialImage = null;
+            this.miniMapBox.Location = new System.Drawing.Point(5, 72);
+            this.miniMapBox.Name = "miniMapBox";
+            this.miniMapBox.Size = new System.Drawing.Size(224, 192);
+            this.miniMapBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.miniMapBox.TabIndex = 190;
+            this.miniMapBox.TabStop = false;
+            this.miniMapBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.miniMapBox_MouseDown);
+            this.miniMapBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.miniMapBox_MouseMove);
+            // 
+            // xCoordinate
+            // 
+            this.xCoordinate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(68)))), ((int)(((byte)(75)))));
+            this.xCoordinate.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.xCoordinate.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.xCoordinate.ForeColor = System.Drawing.Color.White;
+            this.xCoordinate.Location = new System.Drawing.Point(74, 46);
+            this.xCoordinate.MaxLength = 3;
+            this.xCoordinate.Multiline = false;
+            this.xCoordinate.Name = "xCoordinate";
+            this.xCoordinate.Size = new System.Drawing.Size(63, 20);
+            this.xCoordinate.TabIndex = 236;
+            this.xCoordinate.Text = "";
+            // 
+            // FreezeMap2Btn
+            // 
+            this.FreezeMap2Btn.BackColor = System.Drawing.Color.DarkGreen;
+            this.FreezeMap2Btn.FlatAppearance.BorderSize = 0;
+            this.FreezeMap2Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.FreezeMap2Btn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.FreezeMap2Btn.ForeColor = System.Drawing.Color.White;
+            this.FreezeMap2Btn.Location = new System.Drawing.Point(5, 4);
+            this.FreezeMap2Btn.Margin = new System.Windows.Forms.Padding(4);
+            this.FreezeMap2Btn.Name = "FreezeMap2Btn";
+            this.FreezeMap2Btn.Size = new System.Drawing.Size(132, 25);
+            this.FreezeMap2Btn.TabIndex = 242;
+            this.FreezeMap2Btn.Text = "Freeze Map";
+            this.FreezeMap2Btn.UseVisualStyleBackColor = false;
+            this.FreezeMap2Btn.Click += new System.EventHandler(this.FreezeMap2Btn_Click);
             // 
             // Freezer
             // 
@@ -357,6 +483,7 @@ namespace ACNHPoker
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(54)))), ((int)(((byte)(57)))), ((int)(((byte)(63)))));
             this.ClientSize = new System.Drawing.Size(234, 356);
+            this.Controls.Add(this.mapPanel);
             this.Controls.Add(this.PleaseWaitPanel);
             this.Controls.Add(this.mainPanel);
             this.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
@@ -375,6 +502,9 @@ namespace ACNHPoker
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.mainPanel.ResumeLayout(false);
             this.mainPanel.PerformLayout();
+            this.mapPanel.ResumeLayout(false);
+            this.mapPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.miniMapBox)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -401,5 +531,13 @@ namespace ACNHPoker
         private System.Windows.Forms.Panel mainPanel;
         private System.Windows.Forms.Label WaitMessagebox;
         private System.Windows.Forms.RichTextBox FinMsg;
+        private System.Windows.Forms.Panel mapPanel;
+        private System.Windows.Forms.Button FreezeMap2Btn;
+        private System.Windows.Forms.Button startBtn;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.RichTextBox yCoordinate;
+        private System.Windows.Forms.PictureBox miniMapBox;
+        private System.Windows.Forms.RichTextBox xCoordinate;
     }
 }

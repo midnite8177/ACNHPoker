@@ -260,6 +260,11 @@ https://youtu.be/-zztRgmtXig
 	* Fixed the spawning bug of fence variation.
 	* Rework on the ImageDownloader to hopefully mitigate crash.
 	* Finally added the freezer menu.
+* R18.3
+	* Added double click to get max stack.
+	* Change the Auto-save time detection number. Hopefully detect it better.
+	* Minor bugfix here and there for the map dropper.
+	* Added right-click to flag to 20 or 00 in map dropper. Also works with area select.	
 	
 ## Contributing
 

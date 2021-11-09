@@ -218,9 +218,10 @@ namespace ACNHPoker
         public static string variationPath = csvFolder + variationFile;
         public static string favFile = @"fav.csv";
         public static string favPath = csvFolder + favFile;
-
         public static string fieldFile = @"field.csv";
         public static string fieldPath = csvFolder + fieldFile;
+        public static string kindFile = @"kind.csv";
+        public static string kindPath = csvFolder + kindFile;
 
         public static string dodoFile = @"dodo.txt";
         public static string dodoPath = saveFolder + dodoFile;
@@ -247,10 +248,35 @@ namespace ACNHPoker
         public static string RecipeOverlayFile = @"PaperRecipe.png";
         public static string RecipeOverlayPath = imagePath + RecipeOverlayFile;
 
+        public static Dictionary<string, string> itemkind = new Dictionary<string, string>();
+
         private static Object botLock = new Object();
 
         public Utilities()
         {
+
+        }
+
+        public static void buildDictionary()
+        {
+            if (File.Exists(kindPath))
+            {
+                string[] lines = File.ReadAllLines(kindPath);
+
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(new[] { " ; " }, StringSplitOptions.RemoveEmptyEntries);
+                    if (line.Contains("Kind_"))
+                    {
+                        if (parts[1].Contains("Fake"))
+                        {
+                            itemkind.Add(parts[0], parts[1].Replace("Fake",""));
+                        }
+                        else
+                            itemkind.Add(parts[0], parts[1]);
+                    }
+                }
+            }
         }
 
         private static int Clamp(int value, int min, int max)
@@ -3466,6 +3492,188 @@ namespace ACNHPoker
                 {"wol12", "Audie"},
                 {"non00", "Empty" }
             };
+
+        public static readonly Dictionary<string, int> CountByKind = new Dictionary<string, int>
+        {
+            {"Kind_Ftr", 1},
+            {"Kind_Dishes", 1},
+            {"Kind_Drink", 1},
+            {"Kind_CookingMaterial", 50},
+            {"Kind_RoomWall", 1},
+            {"Kind_RoomFloor", 1},
+            {"Kind_Rug", 1},
+            {"Kind_RugMyDesign", 1},
+            {"Kind_Socks", 1},
+            {"Kind_Cap", 1},
+            {"Kind_Helmet", 1},
+            {"Kind_Accessory", 1},
+            {"Kind_Bag", 1},
+            {"Kind_Umbrella", 1},
+            {"Kind_FtrWall", 1},
+            {"Kind_Counter", 1},
+            {"Kind_Pillar", 1},
+            {"Kind_FishingRod", 1},
+            {"Kind_Net", 1},
+            {"Kind_Shovel", 1},
+            {"Kind_Axe", 1},
+            {"Kind_Watering", 1},
+            {"Kind_Slingshot", 1},
+            {"Kind_ChangeStick", 1},
+            {"Kind_WoodenStickTool", 1},
+            {"Kind_Ladder", 1},
+            {"Kind_GroundMaker", 1},
+            {"Kind_RiverMaker", 1},
+            {"Kind_CliffMaker", 1},
+            {"Kind_HandBag", 1},
+            {"Kind_PartyPopper", 10},
+            {"Kind_Ocarina", 1},
+            {"Kind_Panflute", 1},
+            {"Kind_Tambourine", 1},
+            {"Kind_MaracasCarnival", 1},
+            {"Kind_StickLight", 1},
+            {"Kind_StickLightColorful", 1},
+            {"Kind_Uchiwa", 1},
+            {"Kind_SubToolSensu", 1},
+            {"Kind_Windmill", 1},
+            {"Kind_Partyhorn", 1},
+            {"Kind_BlowBubble", 10},
+            {"Kind_FierworkHand", 10},
+            {"Kind_Balloon", 1},
+            {"Kind_HandheldPennant", 1},
+            {"Kind_BigbagPresent", 1},
+            {"Kind_JuiceFuzzyapple", 1},
+            {"Kind_Megaphone", 1},
+            {"Kind_SoySet", 1},
+            {"Kind_FlowerShower", 1},
+            {"Kind_Candyfloss", 1},
+            {"Kind_SubToolDonut", 1},
+            {"Kind_SubToolEat", 1},
+            {"Kind_SubToolEatRemakeable", 1},
+            {"Kind_Tapioca", 1},
+            {"Kind_SubToolCan", 1},
+            {"Kind_Icecandy", 1},
+            {"Kind_SubToolIcecream", 1},
+            {"Kind_SubToolIcesoft", 1},
+            {"Kind_SubToolEatDrop", 1},
+            {"Kind_SubToolGeneric", 1},
+            {"Kind_Basket", 1},
+            {"Kind_Lantern", 1},
+            {"Kind_SubToolRemakeable", 1},
+            {"Kind_Timer", 1},
+            {"Kind_Gyroid", 1},
+            {"Kind_GyroidScrap", 1},
+            {"Kind_TreeSeedling", 10},
+            {"Kind_Tree", 1},
+            {"Kind_BushSeedling", 10},
+            {"Kind_Bush", 1},
+            {"Kind_VegeSeedling", 10},
+            {"Kind_VegeTree", 1},
+            {"Kind_Vegetable", 10},
+            {"Kind_Weed", 99},
+            {"Kind_WeedLight", 50},
+            {"Kind_FlowerSeed", 10},
+            {"Kind_FlowerBud", 1},
+            {"Kind_Flower", 10},
+            {"Kind_Fruit", 10},
+            {"Kind_Mushroom", 10},
+            {"Kind_Turnip", 10},
+            {"Kind_TurnipExpired", 1},
+            {"Kind_FishBait", 10},
+            {"Kind_PitFallSeed", 10},
+            {"Kind_Medicine", 10},
+            {"Kind_CraftMaterial", 30},
+            {"Kind_CraftRemake", 50},
+            {"Kind_Ore", 30},
+            {"Kind_CraftPhoneCase", 1},
+            {"Kind_Honeycomb", 10},
+            {"Kind_Trash", 1},
+            {"Kind_SnowCrystal", 10},
+            {"Kind_AutumnLeaf", 10},
+            {"Kind_Sakurapetal", 10},
+            {"Kind_XmasDeco", 10},
+            {"Kind_StarPiece", 10},
+            {"Kind_Insect", 1},
+            {"Kind_Fish", 1},
+            {"Kind_DiveFish", 1},
+            {"Kind_ShellDrift", 10},
+            {"Kind_ShellFish", 1},
+            {"Kind_FishToy", 1},
+            {"Kind_InsectToy", 1},
+            {"Kind_Fossil", 1},
+            {"Kind_FossilUnknown", 1},
+            {"Kind_Music", 1},
+            {"Kind_MusicMiss", 1},
+            {"Kind_Bromide", 1},
+            {"Kind_Poster", 1},
+            {"Kind_HousePost", 1},
+            {"Kind_DoorDeco", 1},
+            {"Kind_Fence", 50},
+            {"Kind_DummyRecipe", 1},
+            {"Kind_DummyDIYRecipe", 1},
+            {"Kind_DummyHowtoBook", 1},
+            {"Kind_LicenseItem", 1},
+            {"Kind_BridgeItem", 1},
+            {"Kind_SlopeItem", 1},
+            {"Kind_DIYRecipe", 1},
+            {"Kind_MessageBottle", 1},
+            {"Kind_WrappingPaper", 10},
+            {"Kind_Otoshidama", 10},
+            {"Kind_HousingKit", 1},
+            {"Kind_HousingKitRcoQuest", 1},
+            {"Kind_HousingKitBirdge", 1},
+            {"Kind_Money", 10},
+            {"Kind_FireworkM", 1},
+            {"Kind_BdayCupcake", 10},
+            {"Kind_YutaroWisp", 5},
+            {"Kind_JohnnyQuest", 10},
+            {"Kind_JohnnyQuestDust", 10},
+            {"Kind_PirateQuest", 10},
+            {"Kind_QuestWrapping", 1},
+            {"Kind_QuestChristmasPresentbox", 1},
+            {"Kind_LostQuest", 1},
+            {"Kind_LostQuestDust", 1},
+            {"Kind_TailorTicket", 10},
+            {"Kind_TreasureQuest", 1},
+            {"Kind_TreasureQuestDust", 1},
+            {"Kind_MilePlaneTicket", 10},
+            {"Kind_RollanTicket", 5},
+            {"Kind_EasterEgg", 30},
+            {"Kind_LoveCrystal", 30},
+            {"Kind_Candy", 30},
+            {"Kind_HarvestDish", 1},
+            {"Kind_Feather", 00003},
+            {"Kind_RainbowFeather", 1},
+            {"Kind_Vine", 30},
+            {"Kind_SettingLadder", 1},
+            {"Kind_SincerityTowel", 1},
+            {"Kind_SouvenirChocolate", 10},
+            {"Kind_Giftbox", 1},
+            {"Kind_PinataStick", 1},
+            {"Kind_NpcOutfit", 1},
+            {"Kind_PlayerDemoOutfit", 1},
+            {"Kind_Picture", 1},
+            {"Kind_Sculpture", 1},
+            {"Kind_PictureFake", 1},
+            {"Kind_SculptureFake", 1},
+            {"Kind_SmartPhone", 1},
+            {"Kind_DummyFtr", 1},
+            {"Kind_SequenceOnly", 1},
+            {"Kind_MyDesignObject", 1},
+            {"Kind_MyDesignTexture", 1},
+            {"Kind_CommonFabricRug", 1},
+            {"Kind_CommonFabricObject", 1},
+            {"Kind_CommonFabricTexture", 1},
+            {"Kind_OneRoomBox", 1},
+            {"Kind_DummyWrapping", 1},
+            {"Kind_DummyPresentbox", 1},
+            {"Kind_DummyCardboard", 1},
+            {"Kind_EventObjFtr", 1},
+            {"Kind_NnpcRoomMarker", 1},
+            {"Kind_PhotoStudioList", 1},
+            {"Kind_ShopTorso", 1},
+            {"Kind_DummyWrappingOtoshidama", 1},
+            {"Kind_GardenEditList", 1},
+        };
         #endregion
     }
 }

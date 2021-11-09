@@ -19,6 +19,10 @@ namespace ACNHPoker
         private Form1 main;
         private bool sound;
         private int counter = 0;
+        private miniMap MiniMap = null;
+        private int anchorX = -1;
+        private int anchorY = -1;
+        private byte[] tempData;
         public Freezer(Socket S, Form1 Main, bool Sound)
         {
             s = S;
@@ -419,6 +423,386 @@ namespace ACNHPoker
             {
                 mainPanel.Enabled = true;
             });
+        }
+
+        private void FreezeMap2Btn_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog file = new OpenFileDialog()
+            {
+                Filter = "New Horizons Fasil 2 (*.nhf2)|*.nhf2|All files (*.*)|*.*",
+            };
+
+            Configuration config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
+
+            string savepath;
+
+            if (config.AppSettings.Settings["LastLoad"].Value.Equals(string.Empty))
+                savepath = Directory.GetCurrentDirectory() + @"\save";
+            else
+                savepath = config.AppSettings.Settings["LastLoad"].Value;
+
+            if (Directory.Exists(savepath))
+            {
+                file.InitialDirectory = savepath;
+            }
+            else
+            {
+                file.InitialDirectory = @"C:\";
+            }
+
+            if (file.ShowDialog() != DialogResult.OK)
+                return;
+
+            string[] temp = file.FileName.Split('\\');
+            string path = "";
+            for (int i = 0; i < temp.Length - 1; i++)
+                path = path + temp[i] + "\\";
+
+            config.AppSettings.Settings["LastLoad"].Value = path;
+            config.Save(ConfigurationSaveMode.Minimal);
+
+            byte[] data = File.ReadAllBytes(file.FileName);
+
+            if (data.Length != Utilities.mapSize * 2)
+            {
+                myMessageBox.Show("Invalid File Size!", "Your map file size is invalid!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            UInt32 address = Utilities.mapZero;
+
+            string[] name = file.FileName.Split('\\');
+
+            tempData = data;
+
+            this.Width = 505;
+            if (MiniMap == null)
+            {
+                byte[] Acre = Utilities.getAcre(s, null);
+
+                if (MiniMap == null)
+                    MiniMap = new miniMap(data, Acre);
+
+                miniMapBox.BackgroundImage = MiniMap.combineMap(MiniMap.drawBackground(), MiniMap.drawItemMap());
+            }
+            else
+                return;
+            try
+            {
+                byte[] Coordinate = Utilities.getCoordinate(s, null);
+                int x = BitConverter.ToInt32(Coordinate, 0);
+                int y = BitConverter.ToInt32(Coordinate, 4);
+
+                anchorX = x - 0x24;
+                anchorY = y - 0x18;
+
+                if (anchorX < 3 || anchorY < 3 || anchorX > 108 || anchorY > 92)
+                {
+                    anchorX = 3;
+                    anchorY = 3;
+                }
+                xCoordinate.Text = anchorX.ToString();
+                yCoordinate.Text = anchorY.ToString();
+                miniMapBox.Image = MiniMap.drawSelectSquare(anchorX, anchorY);
+            }
+            catch (Exception ex)
+            {
+                Log.logEvent("Regen", "getCoordinate: " + ex.Message.ToString());
+                myMessageBox.Show("Something doesn't feel right at all. You should restart the program...\n\n" + ex.Message.ToString(), "!!! THIS SHIT DOESN'T WORK!! WHY? HAS I EVER?", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
+
+
+            /*
+            Log.logEvent("Regen", "Regen4 Started: " + name[name.Length - 1]);
+
+            Thread FreezeThread = new Thread(delegate () { FreezeMapFloor(address, data); });
+            FreezeThread.Start();
+            */
+        }
+
+        private void miniMapBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            Debug.Print(e.X.ToString() + " " + e.Y.ToString());
+
+            int x;
+            int y;
+
+            if (e.X / 2 < 3)
+                x = 3;
+            else if (e.X / 2 > 108)
+                x = 108;
+            else
+                x = e.X / 2;
+
+            if (e.Y / 2 < 3)
+                y = 3;
+            else if (e.Y / 2 > 92)
+                y = 92;
+            else
+                y = e.Y / 2;
+
+            anchorX = x;
+            anchorY = y;
+
+            xCoordinate.Text = x.ToString();
+            yCoordinate.Text = y.ToString();
+
+            miniMapBox.Image = MiniMap.drawSelectSquare(anchorX, anchorY);
+        }
+
+        private void miniMapBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                int x;
+                int y;
+
+                if (e.X / 2 < 3)
+                    x = 3;
+                else if (e.X / 2 > 108)
+                    x = 108;
+                else
+                    x = e.X / 2;
+
+                if (e.Y / 2 < 3)
+                    y = 3;
+                else if (e.Y / 2 > 92)
+                    y = 92;
+                else
+                    y = e.Y / 2;
+
+                anchorX = x;
+                anchorY = y;
+
+                xCoordinate.Text = x.ToString();
+                yCoordinate.Text = y.ToString();
+
+                miniMapBox.Image = MiniMap.drawSelectSquare(anchorX, anchorY);
+            }
+        }
+
+        private void startBtn_Click(object sender, EventArgs e)
+        {
+            if (tempData.Length != Utilities.mapSize * 2)
+            {
+                myMessageBox.Show("Invalid File Size!", "Your map file size is invalid!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            UInt32 address = Utilities.mapZero;
+
+            Thread FreezeThread = new Thread(delegate () { FreezeMapFloor2(address, tempData, anchorX, anchorY); });
+            FreezeThread.Start();
+        }
+
+        private void FreezeMapFloor2(UInt32 address, byte[] data, int x, int y)
+        {
+            showMapWait(124, "Freezing...");
+
+            lockControl();
+
+            byte[][] b = new byte[112][];
+
+            for (int i = 0; i < 112; i++)
+            {
+                b[i] = new byte[0x1800];
+                Buffer.BlockCopy(data, i * 0x1800, b[i], 0x0, 0x1800);
+                if ((x % 2 == 0) && (i == x / 2 - 1))
+                {
+
+                }
+                else if ((x % 2 != 0) && (i == x / 2 ))
+                {
+
+                }
+                else if ((x % 2 == 0) && (i == x / 2))
+                {
+                    spliter((uint)(address + ((i - 1) * 0x1800)), b[i - 1], b[i], y, false);
+                }
+                else if ((x % 2 != 0) && (i == x / 2 + 1))
+                {
+                    spliter((uint)(address + ((i - 1) * 0x1800)), b[i - 1], b[i], y, true);
+                }
+                else
+                {
+                    //Utilities.SendString(s, Utilities.Freeze((uint)(address + (i * 0x1800)), b[i]));
+                }
+                counter++;
+                //Thread.Sleep(100);
+            }
+
+            int freezeCount = Utilities.GetFreezeCount(s);
+
+            hideMapWait();
+
+            unlockControl();
+
+            this.Invoke((MethodInvoker)delegate
+            {
+                FinMsg.Visible = true;
+                FinMsg.Text = "Let it go!";
+                updateFreezeCountLabel(freezeCount);
+            });
+
+            if (sound)
+                System.Media.SystemSounds.Asterisk.Play();
+        }
+
+        private void spliter(UInt32 address, byte[] first, byte[] second, int y, bool front)
+        {
+            int size = 0x10;
+            byte[][] parts = new byte[13][];
+            Int32[] offsets = new Int32[13];
+            int topLength = y - 1;
+            int bottomLength = 96 - 3 - topLength;
+
+            if (front)
+            {
+                //====================================================
+
+                offsets[0] = 0x0;
+                parts[0] = new byte[size * topLength];
+                Buffer.BlockCopy(first, 0x0, parts[0], 0x0, size * topLength);
+
+                offsets[1] = size * (y + 2);
+                parts[1] = new byte[size * bottomLength];
+                Buffer.BlockCopy(first, size * (y + 2), parts[1], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[2] = 0x600;
+                parts[2] = new byte[size * topLength];
+                Buffer.BlockCopy(first, 0x600, parts[2], 0x0, size * topLength);
+
+                offsets[3] = 0x600 + size * (y + 2);
+                parts[3] = new byte[size * bottomLength];
+                Buffer.BlockCopy(first, 0x600 + size * (y + 2), parts[3], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[4] = 0xC00;
+                parts[4] = new byte[size * topLength];
+                Buffer.BlockCopy(first, 0xC00, parts[4], 0x0, size * topLength);
+
+                offsets[5] = 0xC00 + size * (y + 2);
+                parts[5] = new byte[size * bottomLength];
+                Buffer.BlockCopy(first, 0xC00 + size * (y + 2), parts[5], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[6] = 0x1200;
+                parts[6] = new byte[size * topLength];
+                Buffer.BlockCopy(first, 0x1200, parts[6], 0x0, size * topLength);
+
+                offsets[7] = 0x1200 + size * (y + 2);
+                parts[7] = new byte[size * bottomLength];
+                Buffer.BlockCopy(first, 0x1200 + size * (y + 2), parts[7], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[8] = 0x1800;
+                parts[8] = new byte[size * topLength];
+                Buffer.BlockCopy(second, 0x0, parts[8], 0x0, size * topLength);
+
+                offsets[9] = 0x1800 + size * (y + 2);
+                parts[9] = new byte[size * bottomLength];
+                Buffer.BlockCopy(second, size * (y + 2), parts[9], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[10] = 0x1E00;
+                parts[10] = new byte[size * topLength];
+                Buffer.BlockCopy(second, 0x600, parts[10], 0x0, size * topLength);
+
+                offsets[11] = 0x1E00 + size * (y + 2);
+                parts[11] = new byte[size * bottomLength];
+                Buffer.BlockCopy(second, 0x600 + size * (y + 2), parts[11], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[12] = 0x2400;
+                parts[12] = new byte[0xC00];
+                Buffer.BlockCopy(second, 0xC00, parts[12], 0x0, 0xC00);
+
+            }
+            else
+            {
+                //====================================================
+
+                offsets[0] = 0x0;
+                parts[0] = new byte[0xC00];
+                Buffer.BlockCopy(first, 0x0, parts[0], 0x0, 0xC00);
+
+                //====================================================
+                
+                offsets[1] = 0xC00;
+                parts[1] = new byte[size * topLength];
+                Buffer.BlockCopy(first, 0xC00, parts[1], 0x0, size * topLength);
+
+                offsets[2] = 0xC00 + size * (y + 2);
+                parts[2] = new byte[size * bottomLength];
+                Buffer.BlockCopy(first, 0xC00 + size * (y + 2), parts[2], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[3] = 0x1200;
+                parts[3] = new byte[size * topLength];
+                Buffer.BlockCopy(first, 0x1200, parts[3], 0x0, size * topLength);
+
+                offsets[4] = 0x1200 + size * (y + 2);
+                parts[4] = new byte[size * bottomLength];
+                Buffer.BlockCopy(first, 0x1200 + size * (y + 2), parts[4], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[5] = 0x1800;
+                parts[5] = new byte[size * topLength];
+                Buffer.BlockCopy(second, 0, parts[5], 0x0, size * topLength);
+
+                offsets[6] = 0x1800 + size * (y + 2);
+                parts[6] = new byte[size * bottomLength];
+                Buffer.BlockCopy(second, size * (y + 2), parts[6], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[7] = 0x1E00;
+                parts[7] = new byte[size * topLength];
+                Buffer.BlockCopy(second, 0x600, parts[7], 0x0, size * topLength);
+
+                offsets[8] = 0x1E00 + size * (y + 2);
+                parts[8] = new byte[size * bottomLength];
+                Buffer.BlockCopy(second, 0x600 + size * (y + 2), parts[8], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[9] = 0x2400;
+                parts[9] = new byte[size * topLength];
+                Buffer.BlockCopy(second, 0xC00, parts[9], 0x0, size * topLength);
+
+                offsets[10] = 0x2400 + size * (y + 2);
+                parts[10] = new byte[size * bottomLength];
+                Buffer.BlockCopy(second, 0xC00 + size * (y + 2), parts[10], 0x0, size * bottomLength);
+
+                //====================================================
+
+                offsets[11] = 0x2A00;
+                parts[11] = new byte[size * topLength];
+                Buffer.BlockCopy(second, 0x1200, parts[11], 0x0, size * topLength);
+
+                offsets[12] = 0x2A00 + size * (y + 2);
+                parts[12] = new byte[size * bottomLength];
+                Buffer.BlockCopy(second, 0x1200 + size * (y + 2), parts[12], 0x0, size * bottomLength);
+
+                //====================================================
+            }
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                Utilities.SendString(s, Utilities.Freeze((uint)(address + offsets[i]), parts[i]));
+                Thread.Sleep(100);
+                counter++;
+            }
         }
     }
 }

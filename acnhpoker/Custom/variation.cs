@@ -392,6 +392,8 @@ namespace ACNHPoker
 
         public DataRow GetRowFromID(string id)
         {
+            if (itemSource == null)
+                return null;
             DataRow row = itemSource.Rows.Find(id);
 
             return row;
