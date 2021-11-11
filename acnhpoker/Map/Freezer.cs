@@ -23,6 +23,10 @@ namespace ACNHPoker
         private int anchorX = -1;
         private int anchorY = -1;
         private byte[] tempData;
+        private static byte[][] villagerFlag;
+        private static byte[][] villager;
+        private static Boolean[] haveVillager;
+
         public Freezer(Socket S, Form1 Main, bool Sound)
         {
             s = S;
@@ -626,10 +630,10 @@ namespace ACNHPoker
                 }
                 else
                 {
-                    //Utilities.SendString(s, Utilities.Freeze((uint)(address + (i * 0x1800)), b[i]));
+                    Utilities.SendString(s, Utilities.Freeze((uint)(address + (i * 0x1800)), b[i]));
                 }
                 counter++;
-                //Thread.Sleep(100);
+                Thread.Sleep(100);
             }
 
             int freezeCount = Utilities.GetFreezeCount(s);
@@ -803,6 +807,60 @@ namespace ACNHPoker
                 Thread.Sleep(100);
                 counter++;
             }
+        }
+
+        private void freezeVillagerBtn_Click(object sender, EventArgs e)
+        {
+            villagerFlag = new byte[10][];
+            villager = new byte[10][];
+            haveVillager = new Boolean[10];
+
+            for (int i = 0; i < 10; i++)
+            {
+                villager[i] = Utilities.GetVillager(s, null, i, 0x3);
+                villagerFlag[i] = Utilities.GetMoveout(s, null, i, (int)0x33);
+                haveVillager[i] = MapRegenerator.checkHaveVillager(villager[i]);
+                if (haveVillager[i])
+                {
+                    Utilities.SendString(s, Utilities.Freeze((uint)(Utilities.VillagerAddress + (i * Utilities.VillagerSize) + Utilities.VillagerMoveoutOffset), villagerFlag[i]));
+                }
+            }
+            MapRegenerator.writeVillager(villager, haveVillager);
+
+            int freezeCount = Utilities.GetFreezeCount(s);
+
+            this.Invoke((MethodInvoker)delegate
+            {
+                FinMsg.Visible = true;
+                FinMsg.Text = "Stay!";
+                updateFreezeCountLabel(freezeCount);
+            });
+
+            if (sound)
+                System.Media.SystemSounds.Asterisk.Play();
+        }
+
+        private void unfreezeVillagerBtn_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                if (haveVillager[i])
+                {
+                    Utilities.SendString(s, Utilities.UnFreeze((uint)(Utilities.VillagerAddress + (i * Utilities.VillagerSize) + Utilities.VillagerMoveoutOffset)));
+                }
+            }
+
+            int freezeCount = Utilities.GetFreezeCount(s);
+
+            this.Invoke((MethodInvoker)delegate
+            {
+                FinMsg.Visible = true;
+                FinMsg.Text = "Go!";
+                updateFreezeCountLabel(freezeCount);
+            });
+
+            if (sound)
+                System.Media.SystemSounds.Asterisk.Play();
         }
     }
 }

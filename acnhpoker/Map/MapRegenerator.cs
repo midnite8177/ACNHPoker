@@ -32,7 +32,7 @@ namespace ACNHPoker
         private byte[] tempData;
         private string tempFilename;
 
-        private static byte[][] villageFlag;
+        private static byte[][] villagerFlag;
         private static byte[][] villager;
         private static Boolean[] haveVillager;
 
@@ -719,7 +719,7 @@ namespace ACNHPoker
                         if (keepVillagerBox.Checked)
                         {
                             int index = runCount % 10;
-                            CheckAndResetVillager(villageFlag[index], haveVillager[index], index, ref writeCount);
+                            CheckAndResetVillager(villagerFlag[index], haveVillager[index], index, ref writeCount);
                         }
                         runCount++;
                         if (PauseCount > 0)
@@ -941,7 +941,7 @@ namespace ACNHPoker
                         if (keepVillagerBox.Checked)
                         {
                             int index = runCount % 10;
-                            CheckAndResetVillager(villageFlag[index], haveVillager[index], index, ref writeCount);
+                            CheckAndResetVillager(villagerFlag[index], haveVillager[index], index, ref writeCount);
                         }
                         runCount++;
                         if (PauseCount > 0)
@@ -1502,16 +1502,16 @@ namespace ACNHPoker
 
         #region Villager
 
-        private static void prepareVillager(Socket s)
+        public static void prepareVillager(Socket s)
         {
-            villageFlag = new byte[10][];
+            villagerFlag = new byte[10][];
             villager = new byte[10][];
             haveVillager = new Boolean[10];
 
             for (int i = 0; i < 10; i++)
             {
                 villager[i] = Utilities.GetVillager(s, null, i, 0x3);
-                villageFlag[i] = Utilities.GetMoveout(s, null, i, (int)0x33);
+                villagerFlag[i] = Utilities.GetMoveout(s, null, i, (int)0x33);
                 haveVillager[i] = checkHaveVillager(villager[i]);
             }
             writeVillager(villager, haveVillager);
@@ -1524,14 +1524,14 @@ namespace ACNHPoker
             else
             {
                 villager[index] = Utilities.GetVillager(s, null, index, 0x3);
-                villageFlag[index] = Utilities.GetMoveout(s, null, index, (int)0x33);
+                villagerFlag[index] = Utilities.GetMoveout(s, null, index, (int)0x33);
                 haveVillager[index] = true;
 
                 writeVillager(villager, haveVillager);
             }
         }
 
-        private static Boolean checkHaveVillager(byte[] villager)
+        public static Boolean checkHaveVillager(byte[] villager)
         {
             if (villager[0] >= 0x23)
                 return false;
@@ -1539,7 +1539,7 @@ namespace ACNHPoker
                 return true;
         }
 
-        private static void writeVillager(byte[][] villager, Boolean[] haveVillager)
+        public static void writeVillager(byte[][] villager, Boolean[] haveVillager)
         {
             string villagerStr = " | ";
             for (int i = 0; i < 10; i++)
@@ -1554,7 +1554,7 @@ namespace ACNHPoker
             }
         }
 
-        private void CheckAndResetVillager(byte[] villageFlag, Boolean haveVillager, int index, ref int counter)
+        private void CheckAndResetVillager(byte[] villagerFlag, Boolean haveVillager, int index, ref int counter)
         {
             if (!haveVillager)
             {
@@ -1563,9 +1563,9 @@ namespace ACNHPoker
             else
             {
                 string ByteString = Utilities.ByteToHexString(Utilities.GetMoveout(s, null, index, (int)0x33, ref counter));
-                if (!ByteString.Equals(Utilities.ByteToHexString(villageFlag)))
+                if (!ByteString.Equals(Utilities.ByteToHexString(villagerFlag)))
                 {
-                    Utilities.SetMoveout(s, null, index, villageFlag, ref counter);
+                    Utilities.SetMoveout(s, null, index, villagerFlag, ref counter);
                     Debug.Print("Reset Villager " + index);
                     Log.logEvent("Regen", "Villager Reset : " + index);
                 }

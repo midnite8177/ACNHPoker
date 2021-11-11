@@ -300,6 +300,7 @@
             this.riverFishGridView = new System.Windows.Forms.DataGridView();
             this.btnToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.villagerLargePanel = new System.Windows.Forms.Panel();
+            this.button7 = new System.Windows.Forms.Button();
             this.ignoreHeader = new System.Windows.Forms.CheckBox();
             this.overlay = new ACNHPoker.ExtendedPanel();
             this.PleaseWaitPanel = new System.Windows.Forms.Panel();
@@ -307,6 +308,7 @@
             this.VillagerProgressBar = new System.Windows.Forms.ProgressBar();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.label29 = new System.Windows.Forms.Label();
+            this.button20 = new System.Windows.Forms.Button();
             this.MysteryIslandToursLabel = new System.Windows.Forms.Label();
             this.RefreshVillagerBtn = new System.Windows.Forms.Button();
             this.CatchphraseLabel = new System.Windows.Forms.Label();
@@ -357,10 +359,6 @@
             this.createBtn = new System.Windows.Forms.Button();
             this.button6 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
-            this.freezeBtn = new System.Windows.Forms.Button();
-            this.button7 = new System.Windows.Forms.Button();
-            this.button8 = new System.Windows.Forms.Button();
-            this.button9 = new System.Windows.Forms.Button();
             this.debugBtn = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.button14 = new System.Windows.Forms.Button();
@@ -2716,7 +2714,7 @@
             this.LoadHouseBtn.TabIndex = 207;
             this.LoadHouseBtn.Tag = "";
             this.LoadHouseBtn.Text = "Load House";
-            this.formToolTip.SetToolTip(this.LoadHouseBtn, "Load house from a .nhvh file and replace the selected villager\'s one.\r\n");
+            this.formToolTip.SetToolTip(this.LoadHouseBtn, "Load house from a .nhvh2 file and replace the selected villager\'s one.\r\n");
             this.LoadHouseBtn.UseVisualStyleBackColor = false;
             this.LoadHouseBtn.Click += new System.EventHandler(this.LoadHouseBtn_Click);
             // 
@@ -2838,7 +2836,7 @@
             this.DumpHouseBtn.TabIndex = 200;
             this.DumpHouseBtn.Tag = "";
             this.DumpHouseBtn.Text = "Dump House";
-            this.formToolTip.SetToolTip(this.DumpHouseBtn, "Save the selected villager\'s house to a .nhvh file.\r\n");
+            this.formToolTip.SetToolTip(this.DumpHouseBtn, "Save the selected villager\'s house to a .nhvh2 file.\r\n");
             this.DumpHouseBtn.UseVisualStyleBackColor = false;
             this.DumpHouseBtn.Click += new System.EventHandler(this.DumpHouseBtn_Click);
             // 
@@ -5671,9 +5669,11 @@
             // 
             // villagerLargePanel
             // 
+            this.villagerLargePanel.Controls.Add(this.button7);
             this.villagerLargePanel.Controls.Add(this.ignoreHeader);
             this.villagerLargePanel.Controls.Add(this.overlay);
             this.villagerLargePanel.Controls.Add(this.PleaseWaitPanel);
+            this.villagerLargePanel.Controls.Add(this.button20);
             this.villagerLargePanel.Controls.Add(this.MysteryIslandToursLabel);
             this.villagerLargePanel.Controls.Add(this.RefreshVillagerBtn);
             this.villagerLargePanel.Controls.Add(this.CatchphraseLabel);
@@ -5702,10 +5702,25 @@
             this.villagerLargePanel.Size = new System.Drawing.Size(1220, 550);
             this.villagerLargePanel.TabIndex = 164;
             // 
+            // button7
+            // 
+            this.button7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
+            this.button7.FlatAppearance.BorderSize = 0;
+            this.button7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button7.Font = new System.Drawing.Font("Arial", 7F, System.Drawing.FontStyle.Bold);
+            this.button7.ForeColor = System.Drawing.Color.White;
+            this.button7.Location = new System.Drawing.Point(915, 520);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(66, 23);
+            this.button7.TabIndex = 247;
+            this.button7.Text = "UpHouse";
+            this.button7.UseVisualStyleBackColor = false;
+            this.button7.Click += new System.EventHandler(this.house_Click);
+            // 
             // ignoreHeader
             // 
             this.ignoreHeader.AutoSize = true;
-            this.ignoreHeader.Location = new System.Drawing.Point(1162, 526);
+            this.ignoreHeader.Location = new System.Drawing.Point(822, 525);
             this.ignoreHeader.Name = "ignoreHeader";
             this.ignoreHeader.Size = new System.Drawing.Size(15, 14);
             this.ignoreHeader.TabIndex = 216;
@@ -5780,6 +5795,21 @@
             this.label29.Text = "Please Wait...";
             this.label29.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // button20
+            // 
+            this.button20.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
+            this.button20.FlatAppearance.BorderSize = 0;
+            this.button20.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button20.Font = new System.Drawing.Font("Arial", 7F, System.Drawing.FontStyle.Bold);
+            this.button20.ForeColor = System.Drawing.Color.White;
+            this.button20.Location = new System.Drawing.Point(843, 520);
+            this.button20.Name = "button20";
+            this.button20.Size = new System.Drawing.Size(66, 23);
+            this.button20.TabIndex = 246;
+            this.button20.Text = "UpVillager";
+            this.button20.UseVisualStyleBackColor = false;
+            this.button20.Click += new System.EventHandler(this.villager_Click);
+            // 
             // MysteryIslandToursLabel
             // 
             this.MysteryIslandToursLabel.AutoSize = true;
@@ -5824,7 +5854,7 @@
             this.MoveInFlagLabel.AutoSize = true;
             this.MoveInFlagLabel.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.MoveInFlagLabel.ForeColor = System.Drawing.Color.White;
-            this.MoveInFlagLabel.Location = new System.Drawing.Point(560, 526);
+            this.MoveInFlagLabel.Location = new System.Drawing.Point(404, 525);
             this.MoveInFlagLabel.Name = "MoveInFlagLabel";
             this.MoveInFlagLabel.Size = new System.Drawing.Size(59, 22);
             this.MoveInFlagLabel.TabIndex = 202;
@@ -5837,10 +5867,10 @@
             this.MoveInFlag.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.MoveInFlag.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.MoveInFlag.ForeColor = System.Drawing.Color.White;
-            this.MoveInFlag.Location = new System.Drawing.Point(620, 518);
+            this.MoveInFlag.Location = new System.Drawing.Point(463, 517);
             this.MoveInFlag.Multiline = false;
             this.MoveInFlag.Name = "MoveInFlag";
-            this.MoveInFlag.Size = new System.Drawing.Size(174, 30);
+            this.MoveInFlag.Size = new System.Drawing.Size(114, 30);
             this.MoveInFlag.TabIndex = 194;
             this.MoveInFlag.Text = "";
             // 
@@ -5851,10 +5881,10 @@
             this.MysRealName.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.MysRealName.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.MysRealName.ForeColor = System.Drawing.Color.White;
-            this.MysRealName.Location = new System.Drawing.Point(981, 518);
+            this.MysRealName.Location = new System.Drawing.Point(702, 517);
             this.MysRealName.Multiline = false;
             this.MysRealName.Name = "MysRealName";
-            this.MysRealName.Size = new System.Drawing.Size(174, 30);
+            this.MysRealName.Size = new System.Drawing.Size(114, 30);
             this.MysRealName.TabIndex = 193;
             this.MysRealName.Text = "";
             // 
@@ -5865,10 +5895,10 @@
             this.MysIName.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.MysIName.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.MysIName.ForeColor = System.Drawing.Color.White;
-            this.MysIName.Location = new System.Drawing.Point(800, 518);
+            this.MysIName.Location = new System.Drawing.Point(582, 517);
             this.MysIName.Multiline = false;
             this.MysIName.Name = "MysIName";
-            this.MysIName.Size = new System.Drawing.Size(174, 30);
+            this.MysIName.Size = new System.Drawing.Size(114, 30);
             this.MysIName.TabIndex = 192;
             this.MysIName.Text = "";
             // 
@@ -5917,10 +5947,10 @@
             this.ForceMoveOutValue.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.ForceMoveOutValue.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.ForceMoveOutValue.ForeColor = System.Drawing.Color.White;
-            this.ForceMoveOutValue.Location = new System.Drawing.Point(383, 518);
+            this.ForceMoveOutValue.Location = new System.Drawing.Point(284, 517);
             this.ForceMoveOutValue.Multiline = false;
             this.ForceMoveOutValue.Name = "ForceMoveOutValue";
-            this.ForceMoveOutValue.Size = new System.Drawing.Size(174, 30);
+            this.ForceMoveOutValue.Size = new System.Drawing.Size(114, 30);
             this.ForceMoveOutValue.TabIndex = 181;
             this.ForceMoveOutValue.Text = "";
             // 
@@ -5931,10 +5961,10 @@
             this.MoveOutValue.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.MoveOutValue.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.MoveOutValue.ForeColor = System.Drawing.Color.White;
-            this.MoveOutValue.Location = new System.Drawing.Point(133, 518);
+            this.MoveOutValue.Location = new System.Drawing.Point(98, 517);
             this.MoveOutValue.Multiline = false;
             this.MoveOutValue.Name = "MoveOutValue";
-            this.MoveOutValue.Size = new System.Drawing.Size(174, 30);
+            this.MoveOutValue.Size = new System.Drawing.Size(114, 30);
             this.MoveOutValue.TabIndex = 180;
             this.MoveOutValue.Text = "";
             // 
@@ -5943,7 +5973,7 @@
             this.ForceMoveOutLabel.AutoSize = true;
             this.ForceMoveOutLabel.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.ForceMoveOutLabel.ForeColor = System.Drawing.Color.White;
-            this.ForceMoveOutLabel.Location = new System.Drawing.Point(310, 526);
+            this.ForceMoveOutLabel.Location = new System.Drawing.Point(213, 525);
             this.ForceMoveOutLabel.Name = "ForceMoveOutLabel";
             this.ForceMoveOutLabel.Size = new System.Drawing.Size(76, 22);
             this.ForceMoveOutLabel.TabIndex = 179;
@@ -5954,7 +5984,7 @@
             this.MoveOutLabel.AutoSize = true;
             this.MoveOutLabel.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.MoveOutLabel.ForeColor = System.Drawing.Color.White;
-            this.MoveOutLabel.Location = new System.Drawing.Point(34, 526);
+            this.MoveOutLabel.Location = new System.Drawing.Point(-1, 525);
             this.MoveOutLabel.Name = "MoveOutLabel";
             this.MoveOutLabel.Size = new System.Drawing.Size(103, 22);
             this.MoveOutLabel.TabIndex = 178;
@@ -7763,70 +7793,6 @@
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.button1_Click_1);
             // 
-            // freezeBtn
-            // 
-            this.freezeBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
-            this.freezeBtn.FlatAppearance.BorderSize = 0;
-            this.freezeBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.freezeBtn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.freezeBtn.ForeColor = System.Drawing.Color.White;
-            this.freezeBtn.Location = new System.Drawing.Point(12, 751);
-            this.freezeBtn.Name = "freezeBtn";
-            this.freezeBtn.Size = new System.Drawing.Size(108, 23);
-            this.freezeBtn.TabIndex = 233;
-            this.freezeBtn.Tag = "";
-            this.freezeBtn.Text = "Freeze";
-            this.freezeBtn.UseVisualStyleBackColor = false;
-            this.freezeBtn.Click += new System.EventHandler(this.freezeBtn_Click);
-            // 
-            // button7
-            // 
-            this.button7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
-            this.button7.FlatAppearance.BorderSize = 0;
-            this.button7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button7.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.button7.ForeColor = System.Drawing.Color.White;
-            this.button7.Location = new System.Drawing.Point(12, 780);
-            this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(108, 23);
-            this.button7.TabIndex = 234;
-            this.button7.Tag = "";
-            this.button7.Text = "unFreeze";
-            this.button7.UseVisualStyleBackColor = false;
-            this.button7.Click += new System.EventHandler(this.button7_Click);
-            // 
-            // button8
-            // 
-            this.button8.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
-            this.button8.FlatAppearance.BorderSize = 0;
-            this.button8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button8.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.button8.ForeColor = System.Drawing.Color.White;
-            this.button8.Location = new System.Drawing.Point(4, 900);
-            this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(107, 23);
-            this.button8.TabIndex = 235;
-            this.button8.Tag = "";
-            this.button8.Text = "freezeCount";
-            this.button8.UseVisualStyleBackColor = false;
-            this.button8.Click += new System.EventHandler(this.button8_Click);
-            // 
-            // button9
-            // 
-            this.button9.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
-            this.button9.FlatAppearance.BorderSize = 0;
-            this.button9.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button9.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.button9.ForeColor = System.Drawing.Color.White;
-            this.button9.Location = new System.Drawing.Point(12, 809);
-            this.button9.Name = "button9";
-            this.button9.Size = new System.Drawing.Size(108, 23);
-            this.button9.TabIndex = 236;
-            this.button9.Tag = "";
-            this.button9.Text = "freezeClear";
-            this.button9.UseVisualStyleBackColor = false;
-            this.button9.Click += new System.EventHandler(this.button9_Click);
-            // 
             // debugBtn
             // 
             this.debugBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
@@ -7959,10 +7925,6 @@
             this.Controls.Add(this.button11);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.speedX1Btn);
-            this.Controls.Add(this.button9);
-            this.Controls.Add(this.button8);
-            this.Controls.Add(this.button7);
-            this.Controls.Add(this.freezeBtn);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.button6);
             this.Controls.Add(this.ReadBtn);
@@ -8358,10 +8320,6 @@
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.CheckBox ignoreHeader;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button freezeBtn;
-        private System.Windows.Forms.Button button7;
-        private System.Windows.Forms.Button button8;
-        private System.Windows.Forms.Button button9;
         private System.Windows.Forms.Button button10;
         private System.Windows.Forms.Button debugBtn;
         private System.Windows.Forms.Button button5;
@@ -8387,6 +8345,8 @@
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button18;
         private System.Windows.Forms.Button button19;
+        private System.Windows.Forms.Button button7;
+        private System.Windows.Forms.Button button20;
     }
 }
 

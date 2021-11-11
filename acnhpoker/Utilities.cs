@@ -48,8 +48,8 @@ namespace ACNHPoker
         public static UInt32 VillagerCatchphraseOffset = 0x10794;
 
         public static UInt32 VillagerHouseAddress = 0xAE5F46A4;
-        public static UInt32 VillagerHouseSize = 0x1D4;
-        public static UInt32 VillagerHousePadding = 0x1114;
+        public static UInt32 VillagerHouseSize = 0x12E8;
+        public static UInt32 VillagerHouseOldSize = 0x1D4;
         public static UInt32 VillagerHouseBufferDiff = 0x8F1BD0;
         public static UInt32 VillagerHouseOwnerOffset = 0x1C4;
 
@@ -1688,9 +1688,9 @@ namespace ACNHPoker
             {
                 if (bot == null)
                 {
-                    Debug.Print("[Sys] Peek : House " + (VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + diff).ToString("X") + " " + (int)VillagerHouseSize);
+                    Debug.Print("[Sys] Peek : House " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + diff).ToString("X") + " " + (int)VillagerHouseSize);
 
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + diff, (int)VillagerHouseSize, ref counter);
+                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + diff, (int)VillagerHouseSize, ref counter);
 
                     if (b == null)
                     {
@@ -1701,9 +1701,9 @@ namespace ACNHPoker
                 }
                 else
                 {
-                    Debug.Print("[Usb] Peek : House " + (VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + diff).ToString("X") + " " + (int)VillagerHouseSize);
+                    Debug.Print("[Usb] Peek : House " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + diff).ToString("X") + " " + (int)VillagerHouseSize);
 
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + diff), (int)VillagerHouseSize);
+                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + diff), (int)VillagerHouseSize);
 
                     if (b == null)
                     {
@@ -1721,15 +1721,15 @@ namespace ACNHPoker
             {
                 if (bot == null)
                 {
-                    SendByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)), house, (int)VillagerHouseSize, ref counter);
+                    SendByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)), house, (int)VillagerHouseSize, ref counter);
 
-                    SendByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseBufferDiff, house, (int)VillagerHouseSize, ref counter);
+                    SendByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseBufferDiff, house, (int)VillagerHouseSize, ref counter);
                 }
                 else
                 {
-                    WriteLargeBytes(bot, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)), house, (int)VillagerHouseSize, ref counter);
+                    WriteLargeBytes(bot, VillagerHouseAddress + (num * (VillagerHouseSize)), house, (int)VillagerHouseSize, ref counter);
 
-                    WriteLargeBytes(bot, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseBufferDiff, house, (int)VillagerHouseSize, ref counter);
+                    WriteLargeBytes(bot, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseBufferDiff, house, (int)VillagerHouseSize, ref counter);
                 }
             }
         }
@@ -1740,9 +1740,9 @@ namespace ACNHPoker
             {
                 if (bot == null)
                 {
-                    Debug.Print("[Sys] Peek : HouseOwner " + (VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseOwnerOffset).ToString("X"));
+                    Debug.Print("[Sys] Peek : HouseOwner " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset).ToString("X"));
 
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseOwnerOffset, 1, ref counter);
+                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset, 1, ref counter);
 
                     if (b == null)
                     {
@@ -1754,9 +1754,9 @@ namespace ACNHPoker
                 }
                 else
                 {
-                    Debug.Print("[Usb] Peek : HouseOwner " + (VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseOwnerOffset).ToString("X"));
+                    Debug.Print("[Usb] Peek : HouseOwner " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset).ToString("X"));
 
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseOwnerOffset), 1, ref counter);
+                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset), 1, ref counter);
 
                     if (b == null)
                     {
@@ -1775,7 +1775,7 @@ namespace ACNHPoker
             {
                 if (bot == null)
                 {
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseOwnerOffset, 1);
+                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset, 1);
 
                     if (b == null)
                     {
@@ -1787,7 +1787,7 @@ namespace ACNHPoker
                 }
                 else
                 {
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + VillagerHouseOwnerOffset), 1);
+                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset), 1);
 
                     if (b == null)
                     {
@@ -1904,9 +1904,9 @@ namespace ACNHPoker
             {
                 if (bot == null)
                 {
-                    Debug.Print("[Sys] Peek : VillagerHouseFlag " + (VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + offset).ToString("X"));
+                    Debug.Print("[Sys] Peek : VillagerHouseFlag " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + offset).ToString("X"));
 
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + offset, 1, ref counter);
+                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + offset, 1, ref counter);
 
                     if (b == null)
                     {
@@ -1917,9 +1917,9 @@ namespace ACNHPoker
                 }
                 else
                 {
-                    Debug.Print("[Usb] Peek : VillagerHouseFlag " + (VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + offset).ToString("X"));
+                    Debug.Print("[Usb] Peek : VillagerHouseFlag " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + offset).ToString("X"));
 
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize + VillagerHousePadding)) + offset), 1, ref counter);
+                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + offset), 1, ref counter);
 
                     if (b == null)
                     {
@@ -2572,7 +2572,7 @@ namespace ACNHPoker
 
                 if (bot == null)
                 {
-                    //Debug.Print("[Sys] Peek : Dodo " + dodoAddress.ToString("X"));
+                    Debug.Print("[Sys] Peek : Dodo " + dodoAddress.ToString("X"));
                     if (chi)
                         b = ReadByteArray(socket, dodoAddress + ChineseLanguageOffset, 5);
                     else
@@ -2611,7 +2611,7 @@ namespace ACNHPoker
             }
         }
 
-        public static void SetTextSpeed(Socket socket, USBBot bot)
+        public static void SetTextSpeed(Socket socket, USBBot bot, bool chi)
         {
             lock (botLock)
             {
@@ -2621,18 +2621,29 @@ namespace ACNHPoker
                     {
                         string msg;
 
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", TextSpeedAddress.ToString("X"), "3");
-                        Debug.Print("Poke TextSpeed: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (TextSpeedAddress + ChineseLanguageOffset).ToString("X"), "3");
-                        Debug.Print("Poke TextSpeedChi: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
+                        if (chi)
+                        {
+                            msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (TextSpeedAddress + ChineseLanguageOffset).ToString("X"), "3");
+                            Debug.Print("Poke TextSpeedChi: " + msg);
+                            SendString(socket, Encoding.UTF8.GetBytes(msg));
+                        }
+                        else
+                        {
+                            msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", TextSpeedAddress.ToString("X"), "3");
+                            Debug.Print("Poke TextSpeed: " + msg);
+                            SendString(socket, Encoding.UTF8.GetBytes(msg));
+                        }
                     }
                     else
                     {
-                        bot.WriteBytes(stringToByte("3"), TextSpeedAddress);
-                        bot.WriteBytes(stringToByte("3"), TextSpeedAddress + ChineseLanguageOffset);
+                        if (chi)
+                        {
+                            bot.WriteBytes(stringToByte("3"), TextSpeedAddress);
+                        }
+                        else
+                        {
+                            bot.WriteBytes(stringToByte("3"), TextSpeedAddress + ChineseLanguageOffset);
+                        }
                     }
                 }
                 catch
@@ -2962,8 +2973,8 @@ namespace ACNHPoker
 
         public static async Task loadBoth(Socket socket, int villagerIndex, byte[] villager, int houseIndex, byte[] house)
         {
-            await Task.Run(() => SendByteArray(socket, VillagerAddress + (villagerIndex * (VillagerHouseSize + VillagerHousePadding)), villager, (int)VillagerSize));
-            await Task.Run(() => SendByteArray(socket, VillagerHouseAddress + (houseIndex * (VillagerHouseSize + VillagerHousePadding)), house, (int)VillagerHouseSize));
+            await Task.Run(() => SendByteArray(socket, VillagerAddress + (villagerIndex * VillagerSize), villager, (int)VillagerSize));
+            await Task.Run(() => SendByteArray(socket, VillagerHouseAddress + (houseIndex * (VillagerHouseSize)), house, (int)VillagerHouseSize));
         }
 
         public static async Task SetMoveout(Socket socket, int villagerIndex, string MoveoutFlag = "2", string ForceMoveoutFlag = "1")
@@ -2980,6 +2991,39 @@ namespace ACNHPoker
                 msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (villagerIndex * VillagerSize) + VillagerAbandonHouseOffset).ToString("X"), "0");
                 SendString(socket, Encoding.UTF8.GetBytes(msg));
             });
+        }
+
+        public static bool isChinese(Socket s, USBBot bot = null)
+        {
+            byte[] b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress, 6);
+            string time = Utilities.ByteToHexString(b);
+
+            Debug.Print(time);
+
+            Int32 year = Convert.ToInt32(Utilities.flip(time.Substring(0, 4)), 16);
+            Int32 month = Convert.ToInt32((time.Substring(4, 2)), 16);
+            Int32 day = Convert.ToInt32((time.Substring(6, 2)), 16);
+            Int32 hour = Convert.ToInt32((time.Substring(8, 2)), 16);
+            Int32 min = Convert.ToInt32((time.Substring(10, 2)), 16);
+
+            if (year > 3000 || month > 12 || day > 31 || hour > 24 || min > 60) //Try for Chineses
+            {
+                b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress + Utilities.ChineseLanguageOffset, 6);
+                time = Utilities.ByteToHexString(b);
+
+                year = Convert.ToInt32(Utilities.flip(time.Substring(0, 4)), 16);
+                month = Convert.ToInt32((time.Substring(4, 2)), 16);
+                day = Convert.ToInt32((time.Substring(6, 2)), 16);
+                hour = Convert.ToInt32((time.Substring(8, 2)), 16);
+                min = Convert.ToInt32((time.Substring(10, 2)), 16);
+
+                if (!(year > 3000 || month > 12 || day > 31 || hour > 24 || min > 60))
+                    return true;
+                else
+                    return false;
+            }
+            else
+                return false;
         }
 
         #region Villager

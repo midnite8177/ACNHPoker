@@ -1311,38 +1311,49 @@ namespace ACNHPoker
         {
             byte[] b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress, 6);
             string time = Utilities.ByteToHexString(b);
-            
-            if (time.Equals("000000000000")) //Try for Chineses
+
+            Debug.Print(time);
+
+            Int32 year = Convert.ToInt32(Utilities.flip(time.Substring(0, 4)), 16);
+            Int32 month = Convert.ToInt32((time.Substring(4, 2)), 16);
+            Int32 day = Convert.ToInt32((time.Substring(6, 2)), 16);
+            Int32 hour = Convert.ToInt32((time.Substring(8, 2)), 16);
+            Int32 min = Convert.ToInt32((time.Substring(10, 2)), 16);
+
+            if (year > 3000 || month > 12 || day > 31 || hour > 24 || min > 60) //Try for Chineses
             {
                 b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress + Utilities.ChineseLanguageOffset, 6);
                 time = Utilities.ByteToHexString(b);
 
-                if (!time.Equals("000000000000"))
+                year = Convert.ToInt32(Utilities.flip(time.Substring(0, 4)), 16);
+                month = Convert.ToInt32((time.Substring(4, 2)), 16);
+                day = Convert.ToInt32((time.Substring(6, 2)), 16);
+                hour = Convert.ToInt32((time.Substring(8, 2)), 16);
+                min = Convert.ToInt32((time.Substring(10, 2)), 16);
+
+                if (!(year > 3000 || month > 12 || day > 31 || hour > 24 || min > 60))
                     ChineseFlag = true;
             }
 
-            Debug.Print(time);
-
             yearTextbox.Clear();
             yearTextbox.SelectionAlignment = HorizontalAlignment.Center;
-            yearTextbox.Text = Convert.ToInt32(Utilities.flip(time.Substring(0, 4)), 16).ToString();
+            yearTextbox.Text = year.ToString();
 
             monthTextbox.Clear();
             monthTextbox.SelectionAlignment = HorizontalAlignment.Center;
-            monthTextbox.Text = Convert.ToInt32((time.Substring(4, 2)), 16).ToString();
+            monthTextbox.Text = month.ToString();
 
             dayTextbox.Clear();
             dayTextbox.SelectionAlignment = HorizontalAlignment.Center;
-            dayTextbox.Text = Convert.ToInt32((time.Substring(6, 2)), 16).ToString();
+            dayTextbox.Text = day.ToString();
 
             hourTextbox.Clear();
             hourTextbox.SelectionAlignment = HorizontalAlignment.Center;
-            hourTextbox.Text = Convert.ToInt32((time.Substring(8, 2)), 16).ToString();
+            hourTextbox.Text = hour.ToString();
 
             minTextbox.Clear();
             minTextbox.SelectionAlignment = HorizontalAlignment.Center;
-            minTextbox.Text = Convert.ToInt32((time.Substring(10, 2)), 16).ToString();
-
+            minTextbox.Text = min.ToString();
         }
 
         private void settimeBtn_Click(object sender, EventArgs e)

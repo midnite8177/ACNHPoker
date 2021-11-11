@@ -34,6 +34,7 @@ namespace ACNHPoker
             this.saveMapBtn = new System.Windows.Forms.Button();
             this.formToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.changeRateBtn = new System.Windows.Forms.Button();
+            this.startBtn = new System.Windows.Forms.Button();
             this.UnFreezeAllBtn = new System.Windows.Forms.Button();
             this.FreezeCountLabel = new System.Windows.Forms.Label();
             this.SlotLabel = new System.Windows.Forms.Label();
@@ -53,13 +54,14 @@ namespace ACNHPoker
             this.mainPanel = new System.Windows.Forms.Panel();
             this.FinMsg = new System.Windows.Forms.RichTextBox();
             this.mapPanel = new System.Windows.Forms.Panel();
-            this.startBtn = new System.Windows.Forms.Button();
+            this.FreezeMap2Btn = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.yCoordinate = new System.Windows.Forms.RichTextBox();
             this.miniMapBox = new System.Windows.Forms.PictureBox();
             this.xCoordinate = new System.Windows.Forms.RichTextBox();
-            this.FreezeMap2Btn = new System.Windows.Forms.Button();
+            this.unfreezeVillagerBtn = new System.Windows.Forms.Button();
+            this.freezeVillagerBtn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.RateBar)).BeginInit();
             this.PleaseWaitPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
@@ -113,6 +115,25 @@ namespace ACNHPoker
         "ould keep this as high as possible to reduce the load.");
             this.changeRateBtn.UseVisualStyleBackColor = false;
             this.changeRateBtn.Click += new System.EventHandler(this.changeRateBtn_Click);
+            // 
+            // startBtn
+            // 
+            this.startBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
+            this.startBtn.FlatAppearance.BorderSize = 0;
+            this.startBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.startBtn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.startBtn.ForeColor = System.Drawing.Color.White;
+            this.startBtn.Location = new System.Drawing.Point(143, 4);
+            this.startBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.startBtn.Name = "startBtn";
+            this.startBtn.Size = new System.Drawing.Size(86, 25);
+            this.startBtn.TabIndex = 236;
+            this.startBtn.Tag = "Start";
+            this.startBtn.Text = "Start";
+            this.formToolTip.SetToolTip(this.startBtn, "Start the regen with only the area selected being ignored.\r\n[WARNING] Item droppe" +
+        "d/placed on the empty space outside the area will be deleted.");
+            this.startBtn.UseVisualStyleBackColor = false;
+            this.startBtn.Click += new System.EventHandler(this.startBtn_Click);
             // 
             // UnFreezeAllBtn
             // 
@@ -363,6 +384,8 @@ namespace ACNHPoker
             // 
             // mapPanel
             // 
+            this.mapPanel.Controls.Add(this.unfreezeVillagerBtn);
+            this.mapPanel.Controls.Add(this.freezeVillagerBtn);
             this.mapPanel.Controls.Add(this.FreezeMap2Btn);
             this.mapPanel.Controls.Add(this.startBtn);
             this.mapPanel.Controls.Add(this.label4);
@@ -372,27 +395,24 @@ namespace ACNHPoker
             this.mapPanel.Controls.Add(this.xCoordinate);
             this.mapPanel.Location = new System.Drawing.Point(256, 4);
             this.mapPanel.Name = "mapPanel";
-            this.mapPanel.Size = new System.Drawing.Size(377, 304);
+            this.mapPanel.Size = new System.Drawing.Size(377, 354);
             this.mapPanel.TabIndex = 241;
             // 
-            // startBtn
+            // FreezeMap2Btn
             // 
-            this.startBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.startBtn.FlatAppearance.BorderSize = 0;
-            this.startBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.startBtn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.startBtn.ForeColor = System.Drawing.Color.White;
-            this.startBtn.Location = new System.Drawing.Point(143, 4);
-            this.startBtn.Margin = new System.Windows.Forms.Padding(4);
-            this.startBtn.Name = "startBtn";
-            this.startBtn.Size = new System.Drawing.Size(86, 25);
-            this.startBtn.TabIndex = 236;
-            this.startBtn.Tag = "Start";
-            this.startBtn.Text = "Start";
-            this.formToolTip.SetToolTip(this.startBtn, "Start the regen with only the area selected being ignored.\r\n[WARNING] Item droppe" +
-        "d/placed on the empty space outside the area will be deleted.");
-            this.startBtn.UseVisualStyleBackColor = false;
-            this.startBtn.Click += new System.EventHandler(this.startBtn_Click);
+            this.FreezeMap2Btn.BackColor = System.Drawing.Color.DarkGreen;
+            this.FreezeMap2Btn.FlatAppearance.BorderSize = 0;
+            this.FreezeMap2Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.FreezeMap2Btn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.FreezeMap2Btn.ForeColor = System.Drawing.Color.White;
+            this.FreezeMap2Btn.Location = new System.Drawing.Point(5, 4);
+            this.FreezeMap2Btn.Margin = new System.Windows.Forms.Padding(4);
+            this.FreezeMap2Btn.Name = "FreezeMap2Btn";
+            this.FreezeMap2Btn.Size = new System.Drawing.Size(132, 25);
+            this.FreezeMap2Btn.TabIndex = 242;
+            this.FreezeMap2Btn.Text = "Freeze Map";
+            this.FreezeMap2Btn.UseVisualStyleBackColor = false;
+            this.FreezeMap2Btn.Click += new System.EventHandler(this.FreezeMap2Btn_Click);
             // 
             // label4
             // 
@@ -461,21 +481,37 @@ namespace ACNHPoker
             this.xCoordinate.TabIndex = 236;
             this.xCoordinate.Text = "";
             // 
-            // FreezeMap2Btn
+            // unfreezeVillagerBtn
             // 
-            this.FreezeMap2Btn.BackColor = System.Drawing.Color.DarkGreen;
-            this.FreezeMap2Btn.FlatAppearance.BorderSize = 0;
-            this.FreezeMap2Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.FreezeMap2Btn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
-            this.FreezeMap2Btn.ForeColor = System.Drawing.Color.White;
-            this.FreezeMap2Btn.Location = new System.Drawing.Point(5, 4);
-            this.FreezeMap2Btn.Margin = new System.Windows.Forms.Padding(4);
-            this.FreezeMap2Btn.Name = "FreezeMap2Btn";
-            this.FreezeMap2Btn.Size = new System.Drawing.Size(132, 25);
-            this.FreezeMap2Btn.TabIndex = 242;
-            this.FreezeMap2Btn.Text = "Freeze Map";
-            this.FreezeMap2Btn.UseVisualStyleBackColor = false;
-            this.FreezeMap2Btn.Click += new System.EventHandler(this.FreezeMap2Btn_Click);
+            this.unfreezeVillagerBtn.BackColor = System.Drawing.Color.DarkRed;
+            this.unfreezeVillagerBtn.FlatAppearance.BorderSize = 0;
+            this.unfreezeVillagerBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.unfreezeVillagerBtn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.unfreezeVillagerBtn.ForeColor = System.Drawing.Color.White;
+            this.unfreezeVillagerBtn.Location = new System.Drawing.Point(113, 271);
+            this.unfreezeVillagerBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.unfreezeVillagerBtn.Name = "unfreezeVillagerBtn";
+            this.unfreezeVillagerBtn.Size = new System.Drawing.Size(100, 45);
+            this.unfreezeVillagerBtn.TabIndex = 244;
+            this.unfreezeVillagerBtn.Text = "UnFreeze Villager";
+            this.unfreezeVillagerBtn.UseVisualStyleBackColor = false;
+            this.unfreezeVillagerBtn.Click += new System.EventHandler(this.unfreezeVillagerBtn_Click);
+            // 
+            // freezeVillagerBtn
+            // 
+            this.freezeVillagerBtn.BackColor = System.Drawing.Color.DarkGreen;
+            this.freezeVillagerBtn.FlatAppearance.BorderSize = 0;
+            this.freezeVillagerBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.freezeVillagerBtn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.freezeVillagerBtn.ForeColor = System.Drawing.Color.White;
+            this.freezeVillagerBtn.Location = new System.Drawing.Point(5, 271);
+            this.freezeVillagerBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.freezeVillagerBtn.Name = "freezeVillagerBtn";
+            this.freezeVillagerBtn.Size = new System.Drawing.Size(100, 45);
+            this.freezeVillagerBtn.TabIndex = 243;
+            this.freezeVillagerBtn.Text = "Freeze Villager";
+            this.freezeVillagerBtn.UseVisualStyleBackColor = false;
+            this.freezeVillagerBtn.Click += new System.EventHandler(this.freezeVillagerBtn_Click);
             // 
             // Freezer
             // 
@@ -539,5 +575,7 @@ namespace ACNHPoker
         private System.Windows.Forms.RichTextBox yCoordinate;
         private System.Windows.Forms.PictureBox miniMapBox;
         private System.Windows.Forms.RichTextBox xCoordinate;
+        private System.Windows.Forms.Button unfreezeVillagerBtn;
+        private System.Windows.Forms.Button freezeVillagerBtn;
     }
 }

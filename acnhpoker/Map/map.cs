@@ -1093,6 +1093,8 @@ namespace ACNHPoker
                 if (e.ColumnIndex == Grid.Columns["Image"].Index)
                 {
                     string path;
+                    if (Grid.Rows[e.RowIndex].Cells["iName"].Value == null)
+                        return;
                     string imageName = Grid.Rows[e.RowIndex].Cells["iName"].Value.ToString();
 
                     if (OverrideDict.ContainsKey(imageName))
