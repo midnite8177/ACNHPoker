@@ -265,7 +265,11 @@ https://youtu.be/-zztRgmtXig
 	* Change the Auto-save time detection number. Hopefully detect it better.
 	* Minor bugfix here and there for the map dropper.
 	* Added right-click to flag to 20 or 00 in map dropper. Also works with area select.	
-	
+* R18.4
+	* Update to use v2 villager house (.nhv2)
+	* Fixed a bug where interacting with the villager house might crash the game.
+	* Fixed the Twitch villager inject.
+
 ## Contributing
 
 1. Fork it (<https://github.com/KingLycosa/acnhpoker/fork>)
