@@ -1134,6 +1134,8 @@ namespace ACNHPoker
                     //itemGridView.Rows[e.RowIndex].Height = 128;
                     //itemGridView.Columns[13].Width = 128;
                     string path;
+                    if (itemGridView.Rows[e.RowIndex].Cells["iName"].Value == null)
+                        return;
                     string imageName = itemGridView.Rows[e.RowIndex].Cells["iName"].Value.ToString();
 
                     if (OverrideDict.ContainsKey(imageName))
