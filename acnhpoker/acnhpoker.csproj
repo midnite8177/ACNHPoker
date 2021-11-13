@@ -493,7 +493,7 @@
     </ReferenceCopyLocalPaths>
   </ItemDefinitionGroup>
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>echo Copying CSV
+xcopy /E /I /Y /Q "$(ProjectDir)\csv" "$(TargetDir)\csv"</PostBuildEvent>
   </PropertyGroup>
 </Project>

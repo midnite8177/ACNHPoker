@@ -14,6 +14,13 @@ namespace ACNHPoker
         {
             if (!File.Exists(Utilities.logPath))
             {
+                string fullPath = Path.GetFullPath(Utilities.logPath);
+                string logFolder = Path.GetDirectoryName(fullPath);
+                if(!Directory.Exists(logFolder))
+                {
+                    Directory.CreateDirectory(logFolder);
+                }
+
                 string logheader = "Timestamp" + "," + "Form" + "," + "Message";
 
                 using (StreamWriter sw = File.CreateText(Utilities.logPath))
