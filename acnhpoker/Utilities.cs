@@ -186,7 +186,7 @@ namespace ACNHPoker
         public static readonly string wSpeedX3 = "1E211001";
         public static readonly string wSpeedX4 = "1E221001";
 
-        public static UInt32 CollisionAddress = 0x01554D50;
+        public static UInt32 CollisionAddress = 0x01554D80;
         public static readonly string CollisionDisable = "12800014";
         public static readonly string CollisionEnable = "B95BA014";
 
