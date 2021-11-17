@@ -10,8 +10,7 @@ namespace ACNHPoker
 {
     public partial class bulkSpawn : Form
     {
-        private Socket s;
-        private USBBot bot;
+        private ISysBot _sysBot;
         private miniMap MiniMap = null;
         private map main;
         private int counter = 0;
@@ -29,12 +28,11 @@ namespace ACNHPoker
         private int rowNum;
         private byte[][] SpawnArea = null;
         private bool spawnlock = false;
-        public bulkSpawn(Socket S, USBBot Bot, byte[] layer1, byte[] layer2, byte[] acre, int x, int y, map Map, bool Ignore, bool Sound)
+        public bulkSpawn(ISysBot sysBot, byte[] layer1, byte[] layer2, byte[] acre, int x, int y, map Map, bool Ignore, bool Sound)
         {
             try
             {
-                s = S;
-                bot = Bot;
+                _sysBot = sysBot;
                 Layer1 = layer1;
                 Layer2 = layer2;
                 Acre = acre;
@@ -391,7 +389,7 @@ namespace ACNHPoker
                     {
                         UInt32 address = (UInt32)(Utilities.mapZero + (0xC00 * (anchorX + i)) + (0x10 * (anchorY)));
 
-                        Utilities.dropColumn(s, bot, address, address + 0x600, SpawnArea[i * 2], SpawnArea[i * 2 + 1], ref counter);
+                        Utilities.dropColumn(_sysBot, address, address + 0x600, SpawnArea[i * 2], SpawnArea[i * 2 + 1], ref counter);
                     }
 
                     this.Invoke((MethodInvoker)delegate
@@ -405,7 +403,7 @@ namespace ACNHPoker
                     {
                         UInt32 address = (UInt32)(Utilities.mapZero + (0xC00 * (anchorX - i)) + (0x10 * (anchorY)));
 
-                        Utilities.dropColumn(s, bot, address, address + 0x600, SpawnArea[i * 2], SpawnArea[i * 2 + 1], ref counter);
+                        Utilities.dropColumn(_sysBot, address, address + 0x600, SpawnArea[i * 2], SpawnArea[i * 2 + 1], ref counter);
                     }
 
                     this.Invoke((MethodInvoker)delegate
@@ -512,7 +510,7 @@ namespace ACNHPoker
 
             try
             {
-                byte[] b = Utilities.getSaving(s, bot);
+                byte[] b = Utilities.getSaving(_sysBot);
 
                 if (b == null)
                     return true;

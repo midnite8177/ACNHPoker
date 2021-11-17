@@ -9,16 +9,14 @@ namespace ACNHPoker
     {
         Form1 mainForm;
         int[] friendshipValue = new int[8];
-        Socket S;
-        USBBot Bot;
+        ISysBot _sysBot;
         int Index;
         bool sound;
-        public Friendship(Form1 main, int i, Socket s, USBBot bot, Image img, string name, bool Sound)
+        public Friendship(Form1 main, int i, ISysBot sysBot, Image img, string name, bool Sound)
         {
             InitializeComponent();
             mainForm = main;
-            S = s;
-            Bot = bot;
+            _sysBot = sysBot;
             Index = i;
             sound = Sound;
             VillagerImage.Image = img;
@@ -26,8 +24,8 @@ namespace ACNHPoker
 
             for (int p = 0; p < 8; p++)
             {
-                //byte[] b = Utilities.GetVillager(s, bot, i, (int)(Utilities.VillagerMemoryTinySize), ref counter);
-                byte[] b = Utilities.GetPlayerDataVillager(S, Bot, i, p, (int)(Utilities.VillagerMemoryTinySize));
+                //byte[] b = Utilities.GetVillager(_sysBot, i, (int)(Utilities.VillagerMemoryTinySize), ref counter);
+                byte[] b = Utilities.GetPlayerDataVillager(_sysBot, i, p, (int)(Utilities.VillagerMemoryTinySize));
                 if (b == null)
                     break;
                 friendshipValue[p] = b[70];
@@ -239,7 +237,7 @@ namespace ACNHPoker
             {
                 if (SetValue[p] != friendshipValue[p])
                 {
-                    Utilities.SetFriendship(S, Bot, Index, p, SetValue[p].ToString("X"));
+                    Utilities.SetFriendship(_sysBot, Index, p, SetValue[p].ToString("X"));
                     mainForm.SetFriendship(Index, p, SetValue[p]);
                 }
             }

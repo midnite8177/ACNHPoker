@@ -15,7 +15,7 @@ namespace ACNHPoker
 {
     public partial class Freezer : Form
     {
-        private static Socket s;
+        private ISysBot _sysBot;
         private Form1 main;
         private bool sound;
         private int counter = 0;
@@ -27,15 +27,15 @@ namespace ACNHPoker
         private static byte[][] villager;
         private static Boolean[] haveVillager;
 
-        public Freezer(Socket S, Form1 Main, bool Sound)
+        public Freezer(ISysBot sysBot, Form1 Main, bool Sound)
         {
-            s = S;
+            _sysBot = sysBot;
             main = Main;
             sound = Sound;
 
             InitializeComponent();
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
             updateFreezeCountLabel(freezeCount);
 
             FinMsg.SelectionAlignment = HorizontalAlignment.Center;
@@ -100,7 +100,7 @@ namespace ACNHPoker
 
             lockControl();
 
-            byte[] save = Utilities.ReadByteArray8(s, address, 0x54000*2, ref counter);
+            byte[] save = Utilities.ReadByteArray8(_sysBot, address, 0x54000*2, ref counter);
 
             File.WriteAllBytes(file.FileName, save);
 
@@ -168,9 +168,9 @@ namespace ACNHPoker
         {
             showMapWait(1, "Unfreezing...");
             lockControl();
-            Utilities.SendString(s, Utilities.FreezeClear());
+            Utilities.SendString(_sysBot, Utilities.FreezeClear());
             Thread.Sleep(100);
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
             Thread.Sleep(3000);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
@@ -195,7 +195,7 @@ namespace ACNHPoker
         private void changeRateBtn_Click(object sender, EventArgs e)
         {
             string value = RateBar.Value.ToString();
-            Utilities.SendString(s, Utilities.FreezeRate(value));
+            Utilities.SendString(_sysBot, Utilities.FreezeRate(value));
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -209,9 +209,9 @@ namespace ACNHPoker
 
         private void EnableTextBtn_Click(object sender, EventArgs e)
         {
-            Utilities.SendString(s, Utilities.Freeze(Utilities.TextSpeedAddress, new byte[1] {3}));
+            Utilities.SendString(_sysBot, Utilities.Freeze(Utilities.TextSpeedAddress, new byte[1] {3}));
             
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -226,9 +226,9 @@ namespace ACNHPoker
 
         private void DisableTextBtn_Click(object sender, EventArgs e)
         {
-            Utilities.SendString(s, Utilities.UnFreeze(Utilities.TextSpeedAddress));
+            Utilities.SendString(_sysBot, Utilities.UnFreeze(Utilities.TextSpeedAddress));
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -248,13 +248,13 @@ namespace ACNHPoker
 
         private void FreezeInvBtn_Click(object sender, EventArgs e)
         {
-            byte[] Bank01to20 = Utilities.GetInventoryBank(s, null, 1);
-            byte[] Bank21to40 = Utilities.GetInventoryBank(s, null, 21);
+            byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+            byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
 
-            Utilities.SendString(s, Utilities.Freeze(Utilities.ItemSlotBase, Bank01to20));
-            Utilities.SendString(s, Utilities.Freeze(Utilities.ItemSlot21Base, Bank21to40));
+            Utilities.SendString(_sysBot, Utilities.Freeze(Utilities.ItemSlotBase, Bank01to20));
+            Utilities.SendString(_sysBot, Utilities.Freeze(Utilities.ItemSlot21Base, Bank21to40));
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -269,10 +269,10 @@ namespace ACNHPoker
 
         private void UnFreezeInvBtn_Click(object sender, EventArgs e)
         {
-            Utilities.SendString(s, Utilities.UnFreeze(Utilities.ItemSlotBase));
-            Utilities.SendString(s, Utilities.UnFreeze(Utilities.ItemSlot21Base));
+            Utilities.SendString(_sysBot, Utilities.UnFreeze(Utilities.ItemSlotBase));
+            Utilities.SendString(_sysBot, Utilities.UnFreeze(Utilities.ItemSlot21Base));
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -351,12 +351,12 @@ namespace ACNHPoker
             {
                 b[i] = new byte[0x2000];
                 Buffer.BlockCopy(data, i * 0x2000, b[i], 0x0, 0x2000);
-                Utilities.SendString(s, Utilities.Freeze((uint)(address + (i * 0x2000)), b[i]));
+                Utilities.SendString(_sysBot, Utilities.Freeze((uint)(address + (i * 0x2000)), b[i]));
                 counter++;
                 Thread.Sleep(100);
             }
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             hideMapWait();
 
@@ -391,12 +391,12 @@ namespace ACNHPoker
 
             for (int i = 0; i < 84; i++)
             {
-                Utilities.SendString(s, Utilities.UnFreeze((uint)(address + (i * 0x2000))));
+                Utilities.SendString(_sysBot, Utilities.UnFreeze((uint)(address + (i * 0x2000))));
                 counter++;
                 Thread.Sleep(100);
             }
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             hideMapWait();
 
@@ -482,7 +482,7 @@ namespace ACNHPoker
             this.Width = 505;
             if (MiniMap == null)
             {
-                byte[] Acre = Utilities.getAcre(s, null);
+                byte[] Acre = Utilities.getAcre(_sysBot);
 
                 if (MiniMap == null)
                     MiniMap = new miniMap(data, Acre);
@@ -493,7 +493,7 @@ namespace ACNHPoker
                 return;
             try
             {
-                byte[] Coordinate = Utilities.getCoordinate(s, null);
+                byte[] Coordinate = Utilities.getCoordinate(_sysBot);
                 int x = BitConverter.ToInt32(Coordinate, 0);
                 int y = BitConverter.ToInt32(Coordinate, 4);
 
@@ -630,13 +630,13 @@ namespace ACNHPoker
                 }
                 else
                 {
-                    Utilities.SendString(s, Utilities.Freeze((uint)(address + (i * 0x1800)), b[i]));
+                    Utilities.SendString(_sysBot, Utilities.Freeze((uint)(address + (i * 0x1800)), b[i]));
                 }
                 counter++;
                 Thread.Sleep(100);
             }
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             hideMapWait();
 
@@ -803,7 +803,7 @@ namespace ACNHPoker
 
             for (int i = 0; i < parts.Length; i++)
             {
-                Utilities.SendString(s, Utilities.Freeze((uint)(address + offsets[i]), parts[i]));
+                Utilities.SendString(_sysBot, Utilities.Freeze((uint)(address + offsets[i]), parts[i]));
                 Thread.Sleep(100);
                 counter++;
             }
@@ -817,17 +817,17 @@ namespace ACNHPoker
 
             for (int i = 0; i < 10; i++)
             {
-                villager[i] = Utilities.GetVillager(s, null, i, 0x3);
-                villagerFlag[i] = Utilities.GetMoveout(s, null, i, (int)0x33);
+                villager[i] = Utilities.GetVillager(_sysBot, i, 0x3);
+                villagerFlag[i] = Utilities.GetMoveout(_sysBot, i, (int)0x33);
                 haveVillager[i] = MapRegenerator.checkHaveVillager(villager[i]);
                 if (haveVillager[i])
                 {
-                    Utilities.SendString(s, Utilities.Freeze((uint)(Utilities.VillagerAddress + (i * Utilities.VillagerSize) + Utilities.VillagerMoveoutOffset), villagerFlag[i]));
+                    Utilities.SendString(_sysBot, Utilities.Freeze((uint)(Utilities.VillagerAddress + (i * Utilities.VillagerSize) + Utilities.VillagerMoveoutOffset), villagerFlag[i]));
                 }
             }
             MapRegenerator.writeVillager(villager, haveVillager);
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -846,11 +846,11 @@ namespace ACNHPoker
             {
                 if (haveVillager[i])
                 {
-                    Utilities.SendString(s, Utilities.UnFreeze((uint)(Utilities.VillagerAddress + (i * Utilities.VillagerSize) + Utilities.VillagerMoveoutOffset)));
+                    Utilities.SendString(_sysBot, Utilities.UnFreeze((uint)(Utilities.VillagerAddress + (i * Utilities.VillagerSize) + Utilities.VillagerMoveoutOffset)));
                 }
             }
 
-            int freezeCount = Utilities.GetFreezeCount(s);
+            int freezeCount = Utilities.GetFreezeCount(_sysBot);
 
             this.Invoke((MethodInvoker)delegate
             {

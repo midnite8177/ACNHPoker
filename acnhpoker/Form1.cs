@@ -18,8 +18,10 @@ namespace ACNHPoker
     public partial class Form1 : Form
     {
         #region variable
-        private static Socket s;
-        private string version = "ACNH Poker R18.4 for v2.0.0";
+        private Socket _s = null;
+        private USBBot _bot = null;
+        private ISysBot _sysBot = null;
+        private string version = "ACNH Poker R18.4.1 for v2.0.1";
         private inventorySlot selectedButton;
         private Villager[] V = null;
         private Button[] villagerButton = null;
@@ -51,7 +53,6 @@ namespace ACNHPoker
         public MapRegenerator R = null;
         public Freezer F = null;
         private miniMap MiniMap = null;
-        private USBBot bot = null;
         private bool offline = true;
         private bool allowUpdate = true;
         private bool ChineseFlag = false;
@@ -791,11 +792,11 @@ namespace ACNHPoker
                 return false;
             try
             {
-                byte[] Bank1 = Utilities.peekAddress(s, bot, Utilities.TownNameddress, 150); //TownNameddress
-                byte[] Bank2 = Utilities.peekAddress(s, bot, Utilities.TurnipPurchasePriceAddr, 150); //TurnipPurchasePriceAddr
-                byte[] Bank3 = Utilities.peekAddress(s, bot, Utilities.MasterRecyclingBase, 150); //MasterRecyclingBase
-                byte[] Bank4 = Utilities.peekAddress(s, bot, Utilities.playerReactionAddress, 150); //reactionAddress
-                byte[] Bank5 = Utilities.peekAddress(s, bot, Utilities.staminaAddress, 150); //staminaAddress
+                byte[] Bank1 = Utilities.peekAddress(_sysBot, Utilities.TownNameddress, 150); //TownNameddress
+                byte[] Bank2 = Utilities.peekAddress(_sysBot, Utilities.TurnipPurchasePriceAddr, 150); //TurnipPurchasePriceAddr
+                byte[] Bank3 = Utilities.peekAddress(_sysBot, Utilities.MasterRecyclingBase, 150); //MasterRecyclingBase
+                byte[] Bank4 = Utilities.peekAddress(_sysBot, Utilities.playerReactionAddress, 150); //reactionAddress
+                byte[] Bank5 = Utilities.peekAddress(_sysBot, Utilities.staminaAddress, 150); //staminaAddress
 
                 string result1 = Utilities.ByteToHexString(Bank1);
                 string result2 = Utilities.ByteToHexString(Bank2);
@@ -854,14 +855,14 @@ namespace ACNHPoker
 
             if (Map == null)
             {
-                Map = new map(s, bot, Utilities.itemPath, Utilities.recipePath, Utilities.flowerPath, Utilities.variationPath, Utilities.favPath, this, Utilities.imagePath, OverrideDict, sound);
+                Map = new map(_sysBot, Utilities.itemPath, Utilities.recipePath, Utilities.flowerPath, Utilities.variationPath, Utilities.favPath, this, Utilities.imagePath, OverrideDict, sound);
                 Map.Show();
             }
         }
 
         private void regeneratorBtn_Click(object sender, EventArgs e)
         {
-            if (!Utilities.IsConnected(s))
+            if (!_sysBot.IsConnected())
             {
                 if (!reconnect())
                     return;
@@ -869,7 +870,7 @@ namespace ACNHPoker
 
             if (R == null)
             {
-                R = new MapRegenerator(s, this, sound);
+                R = new MapRegenerator(_sysBot, this, sound);
                 //this.Hide();
                 R.Show();
             }
@@ -879,30 +880,32 @@ namespace ACNHPoker
         {
             if (R == null)
             {
-                F = new Freezer(s, this, sound);
+                F = new Freezer(_sysBot, this, sound);
                 F.Show();
             }
         }
 
         private bool reconnect()
         {
-            s.Close();
+            _s.Close();
+            _sysBot = null;
 
-            s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ipBox.Text), 6000);
 
-            IAsyncResult result = s.BeginConnect(ep, null, null);
+            IAsyncResult result = _s.BeginConnect(ep, null, null);
             bool conSuceded = result.AsyncWaitHandle.WaitOne(3000, true);
-
+            
+            _sysBot = new SysBot(_s);
 
             if (conSuceded == true)
             {
                 try
                 {
-                    s.EndConnect(result);
-                    teleporter = new teleport(s);
-                    Controller = new controller(s, IslandName);
+                    _s.EndConnect(result);
+                    teleporter = new teleport(_sysBot);
+                    Controller = new controller(_sysBot, IslandName);
                     return true;
                 }
                 catch
@@ -980,9 +983,9 @@ namespace ACNHPoker
 
         private void dumpVillager2(int i, SaveFileDialog file)
         {
-            //byte[] b1 = Utilities.ReadByteArray(s, Utilities.VillagerBuffer1 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
-            byte[] b2 = Utilities.ReadByteArray(s, Utilities.VillagerAddress + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
-            //byte[] b3 = Utilities.ReadByteArray(s, Utilities.VillagerBuffer2 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
+            //byte[] b1 = Utilities.ReadByteArray(_sysBot, Utilities.VillagerBuffer1 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
+            byte[] b2 = Utilities.ReadByteArray(_sysBot, Utilities.VillagerAddress + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
+            //byte[] b3 = Utilities.ReadByteArray(_sysBot, Utilities.VillagerBuffer2 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
 
             //File.WriteAllBytes(file.FileName + "1", b1);
             File.WriteAllBytes(file.FileName + "2", b2);
@@ -1059,7 +1062,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 10; i++)
             {
-                //byte[] b = Utilities.ReadByteArray(s, Utilities.VillagerBuffer1 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
+                //byte[] b = _sysBot.ReadByteArray(Utilities.VillagerBuffer1 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
                 //File.WriteAllBytes(file.FileName + i, b);
             }
         }
@@ -1078,7 +1081,7 @@ namespace ACNHPoker
                 {
                     if (i == 0)
                         continue;
-                    namelist[i] = Utilities.GetVisitorName(s, null, i);
+                    namelist[i] = Utilities.GetVisitorName(_sysBot, i);
                     if (namelist[i].Equals(String.Empty))
                         sw.WriteLine("[Empty]");
                     else
@@ -1106,7 +1109,7 @@ namespace ACNHPoker
         {
             if (dodoSetup == null)
             {
-                dodoSetup = new dodo(s, this, true)
+                dodoSetup = new dodo(_sysBot, this, true)
                 {
                     ControlBox = true,
                     ShowInTaskbar = true

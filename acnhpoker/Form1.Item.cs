@@ -71,11 +71,12 @@ namespace ACNHPoker
                     return;
                 }
 
-                s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                _sysBot = null;
+                _s = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ipBox.Text), 6000);
 
-                if (s.Connected == false)
+                if (_s.Connected == false)
                 {
                     //really messed up way to do it but yolo
                     new Thread(() =>
@@ -83,7 +84,7 @@ namespace ACNHPoker
                         Thread.CurrentThread.IsBackground = true;
 
 
-                        IAsyncResult result = s.BeginConnect(ep, null, null);
+                        IAsyncResult result = _s.BeginConnect(ep, null, null);
                         bool conSuceded = result.AsyncWaitHandle.WaitOne(3000, true);
 
 
@@ -91,7 +92,8 @@ namespace ACNHPoker
                         {
                             try
                             {
-                                s.EndConnect(result);
+                                _s.EndConnect(result);
+                                _sysBot = new SysBot(_s);
                             }
                             catch
                             {
@@ -143,7 +145,7 @@ namespace ACNHPoker
 
                                 if (validation())
                                 {
-                                    string sysbotbaseVersion = Utilities.getVersion(s);
+                                    string sysbotbaseVersion = Utilities.getVersion(_sysBot);
                                     myMessageBox.Show("You have successfully established a connection!\n" +
                                                     "Your Sys-botbase installation and IP address are correct.\n" +
                                                     "However...\n" +
@@ -166,62 +168,23 @@ namespace ACNHPoker
                                                     "please try to remove or rename it.\n"
 
                                                     , "Sys-botbase validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                    s.Close();
+                                    _s.Close();
+                                    _sysBot = null;
                                     return;
                                 }
 
-
-
-                                this.refreshBtn.Visible = true;
-                                //this.playerSelectionPanel.Visible = true;
-                                this.playerSelectorInventory.Visible = true;
-                                this.autoRefreshCheckBox.Visible = true;
-                                this.saveBtn.Visible = true;
-                                this.loadBtn.Visible = true;
-                                this.otherBtn.Visible = true;
-                                this.critterBtn.Visible = true;
-                                this.villagerBtn.Visible = true;
-                                this.wrapSetting.SelectedIndex = 0;
-                                //this.selectedItem.setHide(true);
+                                DoConnectionCommon();
+                                this.USBconnectBtn.Visible = false;
                                 this.connectBtn.Tag = "disconnect";
                                 this.connectBtn.Text = "Disconnect";
-                                this.USBconnectBtn.Visible = false;
-                                this.configBtn.Visible = false;
-                                this.mapDropperBtn.Visible = true;
-                                this.regeneratorBtn.Visible = true;
-                                this.freezerBtn.Visible = true;
-                                this.dodoHelperBtn.Visible = true;
-                                offline = false;
 
-                                int CurrentPlayerIndex = updateDropdownBox();
-
-                                playerSelectorInventory.SelectedIndex = CurrentPlayerIndex;
-                                playerSelectorOther.SelectedIndex = CurrentPlayerIndex;
-                                this.Text = this.Text + UpdateTownID();
-
-                                InitTimer();
-                                setEatBtn();
-                                if (!disableValidation)
-                                {
-                                    UpdateTurnipPrices();
-                                }
-                                readWeatherSeed();
-
-                                currentGridView = insectGridView;
-
-                                LoadGridView(InsectAppearParam, insectGridView, ref insectRate, Utilities.InsectDataSize, Utilities.InsectNumRecords);
-                                LoadGridView(FishRiverAppearParam, riverFishGridView, ref riverFishRate, Utilities.FishDataSize, Utilities.FishRiverNumRecords, 1);
-                                LoadGridView(FishSeaAppearParam, seaFishGridView, ref seaFishRate, Utilities.FishDataSize, Utilities.FishSeaNumRecords, 1);
-                                LoadGridView(CreatureSeaAppearParam, seaCreatureGridView, ref seaCreatureRate, Utilities.SeaCreatureDataSize, Utilities.SeaCreatureNumRecords, 1);
-
-                                teleporter = new teleport(s);
-                                Controller = new controller(s, IslandName);
                             });
 
                         }
                         else
                         {
-                            s.Close();
+                            _s.Close();
+                            _sysBot = null;
                             this.pictureBox1.Invoke((MethodInvoker)delegate
                             {
                                 this.pictureBox1.BackColor = System.Drawing.Color.Red;
@@ -236,37 +199,98 @@ namespace ACNHPoker
             }
             else
             {
-                s.Close();
-                foreach (inventorySlot btn in this.inventoryPanel.Controls.OfType<inventorySlot>())
-                {
-                    btn.reset();
-                }
-                connectBtn.Enabled = true;
-                refreshBtn.Visible = false;
-                //playerSelectionPanel.Visible = false;
-                playerSelectorInventory.Visible = false;
-                autoRefreshCheckBox.Visible = false;
-                this.USBconnectBtn.Visible = true;
+                _s.Close();
+                _sysBot = null;
 
-                //this.saveBtn.Visible = false;
-                //this.loadBtn.Visible = false;
-                inventoryBtn_Click(sender, e);
-                otherBtn.Visible = false;
-                critterBtn.Visible = false;
-                this.villagerBtn.Visible = false;
-                this.configBtn.Visible = true;
-                cleanVillagerPage();
-                this.mapDropperBtn.Visible = false;
-                this.regeneratorBtn.Visible = false;
-                this.freezerBtn.Visible = false;
-                this.dodoHelperBtn.Visible = false;
-                offline = true;
+                DoDisconnectionCommon();
 
                 this.connectBtn.Tag = "connect";
                 this.connectBtn.Text = "Connect";
-
-                this.Text = version;
             }
+        }
+
+        void DoDisconnectionCommon()
+        {
+            foreach (inventorySlot btn in this.inventoryPanel.Controls.OfType<inventorySlot>())
+            {
+                btn.reset();
+            }
+
+            this.connectBtn.Visible = true;
+            this.connectBtn.Enabled = true;
+            this.refreshBtn.Visible = false;
+            this.USBconnectBtn.Visible = true;
+
+            //playerSelectionPanel.Visible = false;
+            playerSelectorInventory.Visible = false;
+            autoRefreshCheckBox.Visible = false;
+
+            //this.saveBtn.Visible = false;
+            //this.loadBtn.Visible = false;
+            inventoryBtn_Click(null, EventArgs.Empty);
+            this.otherBtn.Visible = false;
+            this.critterBtn.Visible = false;
+            this.villagerBtn.Visible = false;
+            this.ipBox.Visible = true;
+            this.pictureBox1.Visible = true;
+            this.configBtn.Visible = true;
+
+            cleanVillagerPage();
+            this.mapDropperBtn.Visible = false;
+            this.regeneratorBtn.Visible = false;
+            this.freezerBtn.Visible = false;
+            this.dodoHelperBtn.Visible = false;
+            offline = true;
+
+            this.USBconnectBtn.Text = "USB";
+            this.USBconnectBtn.Tag = "connect";
+            this.Text = version;
+        }
+
+        void DoConnectionCommon()
+        {
+            this.refreshBtn.Visible = true;
+            //this.playerSelectionPanel.Visible = true;
+            this.playerSelectorInventory.Visible = true;
+            this.autoRefreshCheckBox.Visible = true;
+            this.saveBtn.Visible = true;
+            this.loadBtn.Visible = true;
+            this.otherBtn.Visible = true;
+            this.critterBtn.Visible = true;
+            this.villagerBtn.Visible = true;
+            this.wrapSetting.SelectedIndex = 0;
+            //this.selectedItem.setHide(true);
+            
+            this.configBtn.Visible = false;
+            this.mapDropperBtn.Visible = true;
+            this.regeneratorBtn.Visible = true;
+            this.freezerBtn.Visible = true;
+            this.dodoHelperBtn.Visible = true;
+            offline = false;
+
+            int CurrentPlayerIndex = updateDropdownBox();
+
+            playerSelectorInventory.SelectedIndex = CurrentPlayerIndex;
+            playerSelectorOther.SelectedIndex = CurrentPlayerIndex;
+            this.Text = this.Text + UpdateTownID();
+
+            InitTimer();
+            setEatBtn();
+            if (!disableValidation)
+            {
+                UpdateTurnipPrices();
+            }
+            readWeatherSeed();
+
+            currentGridView = insectGridView;
+
+            LoadGridView(InsectAppearParam, insectGridView, ref insectRate, Utilities.InsectDataSize, Utilities.InsectNumRecords);
+            LoadGridView(FishRiverAppearParam, riverFishGridView, ref riverFishRate, Utilities.FishDataSize, Utilities.FishRiverNumRecords, 1);
+            LoadGridView(FishSeaAppearParam, seaFishGridView, ref seaFishRate, Utilities.FishDataSize, Utilities.FishSeaNumRecords, 1);
+            LoadGridView(CreatureSeaAppearParam, seaCreatureGridView, ref seaCreatureRate, Utilities.SeaCreatureDataSize, Utilities.SeaCreatureNumRecords, 1);
+
+            teleporter = new teleport(_sysBot);
+            Controller = new controller(_sysBot, IslandName);
         }
 
         #region Auto Refresh
@@ -282,7 +306,7 @@ namespace ACNHPoker
         {
             try
             {
-                if (s != null && s.Connected == true && autoRefreshCheckBox.Checked && allowUpdate)
+                if (_sysBot != null && _sysBot.Connected == true && autoRefreshCheckBox.Checked && allowUpdate)
                     Invoke((MethodInvoker)delegate
                     {
                         UpdateInventory();
@@ -305,12 +329,12 @@ namespace ACNHPoker
 
             try
             {
-                byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
+                byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
                 if (Bank01to20 == null)
                 {
                     return true;
                 }
-                byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+                byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
                 if (Bank21to40 == null)
                 {
                     return true;
@@ -500,25 +524,25 @@ namespace ACNHPoker
                 if (customIdTextbox.Text == "16A2") //recipe
                 {
                     if (!offline)
-                        Utilities.SpawnItem(s, bot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
+                        Utilities.SpawnItem(_sysBot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
                     selectedButton.setup(GetNameFromID(Utilities.turn2bytes(hexValue), recipeSource), 0x16A2, Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(Utilities.turn2bytes(hexValue), recipeSource));
                 }
                 else if (customIdTextbox.Text == "315A" || customIdTextbox.Text == "1618" || customIdTextbox.Text == "342F") // Wall-Mounted
                 {
                     if (!offline)
-                        Utilities.SpawnItem(s, bot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
+                        Utilities.SpawnItem(_sysBot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
                     selectedButton.setup(GetNameFromID(customIdTextbox.Text, itemSource), Convert.ToUInt16("0x" + customIdTextbox.Text, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(customIdTextbox.Text, itemSource, Convert.ToUInt32("0x" + hexValue, 16)), GetImagePathFromID((Utilities.turn2bytes(hexValue)), itemSource), selectedItem.getFlag1(), selectedItem.getFlag2());
                 }
                 else if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
                 {
                     if (!offline)
-                        Utilities.SpawnItem(s, bot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
+                        Utilities.SpawnItem(_sysBot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
                     selectedButton.setup(GetNameFromID(Utilities.turn2bytes(customIdTextbox.Text), itemSource), Convert.ToUInt16("0x" + customIdTextbox.Text, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(Utilities.turn2bytes(customIdTextbox.Text), itemSource, Convert.ToUInt32("0x" + front, 16)), "", selectedItem.getFlag1(), selectedItem.getFlag2());
                 }
                 else
                 {
                     if (!offline)
-                        Utilities.SpawnItem(s, bot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
+                        Utilities.SpawnItem(_sysBot, selectedSlot, selectedItem.getFlag1() + selectedItem.getFlag2() + customIdTextbox.Text, Utilities.precedingZeros(hexValue, 8));
                     selectedButton.setup(GetNameFromID(Utilities.turn2bytes(customIdTextbox.Text), itemSource), Convert.ToUInt16("0x" + customIdTextbox.Text, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(Utilities.turn2bytes(customIdTextbox.Text), itemSource, Convert.ToUInt32("0x" + hexValue, 16)), "", selectedItem.getFlag1(), selectedItem.getFlag2());
                 }
             }
@@ -550,7 +574,7 @@ namespace ACNHPoker
                         int slotId = int.Parse(owner.SourceControl.Tag.ToString());
                         try
                         {
-                            Utilities.DeleteSlot(s, bot, slotId);
+                            Utilities.DeleteSlot(_sysBot, slotId);
                         }
                         catch (Exception ex)
                         {
@@ -636,7 +660,7 @@ namespace ACNHPoker
                 //Debug.Print(result);
                 try
                 {
-                    Utilities.OverwriteAll(s, bot, b, b, ref counter);
+                    Utilities.OverwriteAll(_sysBot, b, b, ref counter);
                 }
                 catch (Exception ex)
                 {
@@ -731,8 +755,8 @@ namespace ACNHPoker
                 {
                     try
                     {
-                        byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
-                        byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+                        byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+                        byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
 
                         foreach (inventorySlot btn in this.inventoryPanel.Controls.OfType<inventorySlot>())
                         {
@@ -762,7 +786,7 @@ namespace ACNHPoker
 
                             if (slotID == "FFFE")
                             {
-                                Utilities.SpawnItem(s, bot, slot, selectedItem.getFlag1() + selectedItem.getFlag2() + itemID, itemAmount);
+                                Utilities.SpawnItem(_sysBot, slot, selectedItem.getFlag1() + selectedItem.getFlag2() + itemID, itemAmount);
                                 Invoke((MethodInvoker)delegate
                                 {
                                     if (itemID == "16A2") //Recipe
@@ -852,7 +876,7 @@ namespace ACNHPoker
                         }
                     }
 
-                    Utilities.OverwriteAll(s, bot, b, b, ref counter);
+                    Utilities.OverwriteAll(_sysBot, b, b, ref counter);
                     //string result = Encoding.ASCII.GetString(Utilities.transform(b));
                     //Debug.Print(result);
 
@@ -917,7 +941,7 @@ namespace ACNHPoker
             }
 
             if (!offline)
-                Utilities.SpawnRecipe(s, bot, selectedSlot, "16A2", Utilities.turn2bytes(recipeNum.Text));
+                Utilities.SpawnRecipe(_sysBot, selectedSlot, "16A2", Utilities.turn2bytes(recipeNum.Text));
 
             this.ShowMessage(Utilities.turn2bytes(recipeNum.Text));
 
@@ -936,7 +960,7 @@ namespace ACNHPoker
             {
                 try
                 {
-                    Utilities.DeleteSlot(s, bot, int.Parse(selectedButton.Tag.ToString()));
+                    Utilities.DeleteSlot(_sysBot, int.Parse(selectedButton.Tag.ToString()));
                 }
                 catch (Exception ex)
                 {
@@ -975,7 +999,7 @@ namespace ACNHPoker
             }
 
             if (!offline)
-                Utilities.SpawnFlower(s, bot, selectedSlot, flowerID.Text, flowerValue.Text);
+                Utilities.SpawnFlower(_sysBot, selectedSlot, flowerID.Text, flowerValue.Text);
 
             this.ShowMessage(flowerID.Text);
 
@@ -1959,7 +1983,7 @@ namespace ACNHPoker
             {
                 if (dodoSetup == null)
                 {
-                    dodoSetup = new dodo(s, this, true)
+                    dodoSetup = new dodo(_sysBot, this, true)
                     {
                         ControlBox = true,
                         ShowInTaskbar = true
@@ -1977,7 +2001,7 @@ namespace ACNHPoker
             }
             else if (e.KeyCode.ToString() == "F2" || e.KeyCode.ToString() == "Insert")
             {
-                if (selectedButton == null & (s != null || bot != null))
+                if (selectedButton == null &&  _sysBot != null)
                 {
                     int firstSlot = findEmpty();
                     if (firstSlot > 0)
@@ -2286,7 +2310,7 @@ namespace ACNHPoker
 
         private void keyboardCopy(object sender, KeyEventArgs e)
         {
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || !_sysBot.Connected)
             {
                 MessageBox.Show("Please connect to the switch first");
                 return;
@@ -2819,7 +2843,7 @@ namespace ACNHPoker
         #region Turnip
         private void setTurnipBtn_Click(object sender, EventArgs e)
         {
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || _sysBot.Connected == false)
             {
                 MessageBox.Show("Please connect to the switch first");
                 return;
@@ -2850,7 +2874,7 @@ namespace ACNHPoker
 
                 try
                 {
-                    Utilities.ChangeTurnipPrices(s, bot, prices);
+                    Utilities.ChangeTurnipPrices(_sysBot, prices);
                     UpdateTurnipPrices();
                 }
                 catch (Exception ex)
@@ -2882,7 +2906,7 @@ namespace ACNHPoker
 
                 try
                 {
-                    Utilities.ChangeTurnipPrices(s, bot, prices);
+                    Utilities.ChangeTurnipPrices(_sysBot, prices);
                     UpdateTurnipPrices();
                 }
                 catch (Exception ex)
@@ -3342,8 +3366,8 @@ namespace ACNHPoker
 
             if (!offline)
             {
-                byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
-                byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+                byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+                byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
 
                 foreach (inventorySlot btn in this.inventoryPanel.Controls.OfType<inventorySlot>())
                 {
@@ -3373,7 +3397,7 @@ namespace ACNHPoker
 
                     if (slotID != "FFFE")
                     {
-                        Utilities.setFlag1(s, bot, slot, flag);
+                        Utilities.setFlag1(_sysBot, slot, flag);
                         Invoke((MethodInvoker)delegate
                         {
                             btn.setFlag1(flag);
@@ -3421,8 +3445,8 @@ namespace ACNHPoker
 
             if (!offline)
             {
-                byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
-                byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+                byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+                byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
 
                 foreach (inventorySlot btn in this.inventoryPanel.Controls.OfType<inventorySlot>())
                 {
@@ -3452,7 +3476,7 @@ namespace ACNHPoker
 
                     if (slotID != "FFFE")
                     {
-                        Utilities.setFlag1(s, bot, slot, "00");
+                        Utilities.setFlag1(_sysBot, slot, "00");
                         Invoke((MethodInvoker)delegate
                         {
                             btn.setFlag1("00");
@@ -3540,7 +3564,7 @@ namespace ACNHPoker
 
             for (int i = 0; i < 8; i++)
             {
-                byte[] b = Utilities.peekAddress(s, bot, (Utilities.player1SlotBase + (i * Utilities.playerOffset)) + Utilities.InventoryNameOffset, 0x34);
+                byte[] b = Utilities.peekAddress(_sysBot, (Utilities.player1SlotBase + (i * Utilities.playerOffset)) + Utilities.InventoryNameOffset, 0x34);
                 namelist[i] = Encoding.Unicode.GetString(b, 32, 20);
                 namelist[i] = namelist[i].Replace("\0", string.Empty);
                 if (namelist[i].Equals(string.Empty) && !headerFound)

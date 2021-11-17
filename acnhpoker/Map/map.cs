@@ -17,8 +17,7 @@ namespace ACNHPoker
     public partial class map : Form
     {
         #region Variable
-        private static Socket s;
-        private USBBot bot;
+        private ISysBot _sysBot;
 
         private DataTable source;
         private DataTable recipeSource;
@@ -65,12 +64,11 @@ namespace ACNHPoker
         #endregion
 
         #region Form Load
-        public map(Socket S, USBBot Bot, string itemPath, string recipePath, string flowerPath, string variationPath, string favPath, Form1 Main, string ImagePath, Dictionary<string, string> overrideDict, bool Sound)
+        public map(ISysBot sysBot, string itemPath, string recipePath, string flowerPath, string variationPath, string favPath, Form1 Main, string ImagePath, Dictionary<string, string> overrideDict, bool Sound)
         {
             try
             {
-                s = S;
-                bot = Bot;
+                _sysBot = sysBot;
                 if (File.Exists(itemPath))
                     source = loadItemCSV(itemPath);
                 if (File.Exists(recipePath))
@@ -195,7 +193,7 @@ namespace ACNHPoker
 
             btnToolTip.RemoveAll();
 
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || _sysBot.Connected == false)
             {
                 MessageBox.Show("Please connect to the switch first");
                 return;
@@ -211,9 +209,9 @@ namespace ACNHPoker
             {
                 showMapWait(42 * 2, "Fetching Map...");
 
-                Layer1 = Utilities.getMapLayer(s, bot, layer1Address, ref counter);
-                Layer2 = Utilities.getMapLayer(s, bot, layer2Address, ref counter);
-                Acre = Utilities.getAcre(s, bot);
+                Layer1 = Utilities.getMapLayer(_sysBot, layer1Address, ref counter);
+                Layer2 = Utilities.getMapLayer(_sysBot, layer2Address, ref counter);
+                Acre = Utilities.getAcre(_sysBot);
 
                 if (Layer1 != null && Layer2 != null && Acre != null)
                 {
@@ -224,7 +222,7 @@ namespace ACNHPoker
                     throw new NullReferenceException("Layer1/Layer2/Acre");
 
 
-                byte[] Coordinate = Utilities.getCoordinate(s, bot);
+                byte[] Coordinate = Utilities.getCoordinate(_sysBot);
 
                 if (Coordinate != null)
                 {
@@ -1768,21 +1766,21 @@ namespace ACNHPoker
         {
             if (e.KeyCode.ToString() == "F2" || e.KeyCode.ToString() == "Insert")
             {
-                if (selectedButton != null & (s != null || bot != null))
+                if (selectedButton != null && _sysBot != null)
                 {
                     dropItem(selectedButton);
                 }
             }
             else if (e.KeyCode.ToString() == "F1") // Delete
             {
-                if (selectedButton != null & (s != null || bot != null))
+                if (selectedButton != null && _sysBot != null)
                 {
                     deleteItem(selectedButton);
                 }
             }
             else if (e.KeyCode.ToString() == "F3") // Copy
             {
-                if (selectedButton != null & (s != null || bot != null))
+                if (selectedButton != null && _sysBot != null)
                 {
                     copyItem(selectedButton);
                 }
@@ -2033,7 +2031,7 @@ namespace ACNHPoker
                 Thread.Sleep(2000);
             }
 
-            Utilities.dropItem(s, bot, address, itemID, itemData, flag1, flag2);
+            Utilities.dropItem(_sysBot, address, itemID, itemData, flag1, flag2);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -2272,7 +2270,7 @@ namespace ACNHPoker
                 {
                     UInt32 currentColumn = (UInt32)(address + (0xC00 * (TopLeftX + i)) + (0x10 * (TopLeftY)));
 
-                    Utilities.dropColumn(s, bot, currentColumn, currentColumn + 0x600, SpawnArea[i * 2], SpawnArea[i * 2 + 1], ref counter);
+                    Utilities.dropColumn(_sysBot, currentColumn, currentColumn + 0x600, SpawnArea[i * 2], SpawnArea[i * 2 + 1], ref counter);
                 }
 
             }
@@ -2503,7 +2501,7 @@ namespace ACNHPoker
                 {
                     UInt32 CurAddress = (UInt32)(address + (0xC00 * (TopLeftX + i)) + (0x10 * (TopLeftY)));
 
-                    Utilities.dropColumn(s, bot, CurAddress, CurAddress + 0x600, SavedArea[i * 2], SavedArea[i * 2 + 1], ref counter);
+                    Utilities.dropColumn(_sysBot, CurAddress, CurAddress + 0x600, SavedArea[i * 2], SavedArea[i * 2 + 1], ref counter);
                 }
 
                 this.Invoke((MethodInvoker)delegate
@@ -2601,7 +2599,7 @@ namespace ACNHPoker
                 Thread.Sleep(2000);
             }
 
-            Utilities.deleteFloorItem(s, bot, address);
+            Utilities.deleteFloorItem(_sysBot, address);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -2814,8 +2812,8 @@ namespace ACNHPoker
 
             try
             {
-                Layer1 = Utilities.getMapLayer(s, bot, layer1Address, ref counter);
-                Layer2 = Utilities.getMapLayer(s, bot, layer2Address, ref counter);
+                Layer1 = Utilities.getMapLayer(_sysBot, layer1Address, ref counter);
+                Layer2 = Utilities.getMapLayer(_sysBot, layer2Address, ref counter);
 
                 if (layer1Btn.Checked)
                     miniMapBox.BackgroundImage = MiniMap.refreshItemMap(Layer1);
@@ -2903,13 +2901,13 @@ namespace ACNHPoker
                     Thread.Sleep(2000);
                 }
 
-                Utilities.dropColumn(s, bot, address1, address1 + 0x600, b[0], b[1], ref counter);
-                Utilities.dropColumn(s, bot, address2, address2 + 0x600, b[2], b[3], ref counter);
-                Utilities.dropColumn(s, bot, address3, address3 + 0x600, b[4], b[5], ref counter);
-                Utilities.dropColumn(s, bot, address4, address4 + 0x600, b[6], b[7], ref counter);
-                Utilities.dropColumn(s, bot, address5, address5 + 0x600, b[8], b[9], ref counter);
-                Utilities.dropColumn(s, bot, address6, address6 + 0x600, b[10], b[11], ref counter);
-                Utilities.dropColumn(s, bot, address7, address7 + 0x600, b[12], b[13], ref counter);
+                Utilities.dropColumn(_sysBot, address1, address1 + 0x600, b[0], b[1], ref counter);
+                Utilities.dropColumn(_sysBot, address2, address2 + 0x600, b[2], b[3], ref counter);
+                Utilities.dropColumn(_sysBot, address3, address3 + 0x600, b[4], b[5], ref counter);
+                Utilities.dropColumn(_sysBot, address4, address4 + 0x600, b[6], b[7], ref counter);
+                Utilities.dropColumn(_sysBot, address5, address5 + 0x600, b[8], b[9], ref counter);
+                Utilities.dropColumn(_sysBot, address6, address6 + 0x600, b[10], b[11], ref counter);
+                Utilities.dropColumn(_sysBot, address7, address7 + 0x600, b[12], b[13], ref counter);
 
                 this.Invoke((MethodInvoker)delegate
                 {
@@ -2970,7 +2968,7 @@ namespace ACNHPoker
                 byte[][] b = new byte[14][];
 
                 UInt32 address = (UInt32)(Utilities.mapZero + (0xC00 * (anchorX - 3)) + (0x10 * (anchorY - 3)));
-                byte[] readFloor = Utilities.ReadByteArray8(s, address, 0x4E70);
+                byte[] readFloor = Utilities.ReadByteArray8(_sysBot, address, 0x4E70);
                 byte[] curFloor = new byte[1568];
 
                 Buffer.BlockCopy(readFloor, 0x0, curFloor, 0x0, 0x70);
@@ -3030,13 +3028,13 @@ namespace ACNHPoker
                     Thread.Sleep(2000);
                 }
 
-                Utilities.dropColumn(s, bot, address1, address1 + 0x600, b[0], b[1], ref counter);
-                Utilities.dropColumn(s, bot, address2, address2 + 0x600, b[2], b[3], ref counter);
-                Utilities.dropColumn(s, bot, address3, address3 + 0x600, b[4], b[5], ref counter);
-                Utilities.dropColumn(s, bot, address4, address4 + 0x600, b[6], b[7], ref counter);
-                Utilities.dropColumn(s, bot, address5, address5 + 0x600, b[8], b[9], ref counter);
-                Utilities.dropColumn(s, bot, address6, address6 + 0x600, b[10], b[11], ref counter);
-                Utilities.dropColumn(s, bot, address7, address7 + 0x600, b[12], b[13], ref counter);
+                Utilities.dropColumn(_sysBot, address1, address1 + 0x600, b[0], b[1], ref counter);
+                Utilities.dropColumn(_sysBot, address2, address2 + 0x600, b[2], b[3], ref counter);
+                Utilities.dropColumn(_sysBot, address3, address3 + 0x600, b[4], b[5], ref counter);
+                Utilities.dropColumn(_sysBot, address4, address4 + 0x600, b[6], b[7], ref counter);
+                Utilities.dropColumn(_sysBot, address5, address5 + 0x600, b[8], b[9], ref counter);
+                Utilities.dropColumn(_sysBot, address6, address6 + 0x600, b[10], b[11], ref counter);
+                Utilities.dropColumn(_sysBot, address7, address7 + 0x600, b[12], b[13], ref counter);
 
                 this.Invoke((MethodInvoker)delegate
                 {
@@ -3113,7 +3111,7 @@ namespace ACNHPoker
 
                 UInt32 address = (UInt32)(Utilities.mapZero + (0xC00 * (anchorX - 3)) + (0x10 * (anchorY - 3)));
 
-                byte[] b = Utilities.ReadByteArray8(s, address, 0x4E70);
+                byte[] b = Utilities.ReadByteArray8(_sysBot, address, 0x4E70);
                 byte[] save = new byte[1568];
 
                 Buffer.BlockCopy(b, 0x0, save, 0x0, 0x70);
@@ -3221,7 +3219,7 @@ namespace ACNHPoker
 
                     UInt32 address = (UInt32)(Utilities.mapZero + (0xC00 * (anchorX - 3)) + (0x10 * (anchorY - 3)));
 
-                    byte[] readFloor = Utilities.ReadByteArray8(s, address, 0x4E70);
+                    byte[] readFloor = Utilities.ReadByteArray8(_sysBot, address, 0x4E70);
                     byte[] curFloor = new byte[1568];
 
                     Buffer.BlockCopy(readFloor, 0x0, curFloor, 0x0, 0x70);
@@ -3319,13 +3317,13 @@ namespace ACNHPoker
 
                 List<Task> tasks = new List<Task>();
 
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address1, address1 + 0x600, b[0], b[1])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address2, address2 + 0x600, b[2], b[3])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address3, address3 + 0x600, b[4], b[5])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address4, address4 + 0x600, b[6], b[7])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address5, address5 + 0x600, b[8], b[9])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address6, address6 + 0x600, b[10], b[11])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address7, address7 + 0x600, b[12], b[13])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address1, address1 + 0x600, b[0], b[1])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address2, address2 + 0x600, b[2], b[3])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address3, address3 + 0x600, b[4], b[5])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address4, address4 + 0x600, b[6], b[7])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address5, address5 + 0x600, b[8], b[9])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address6, address6 + 0x600, b[10], b[11])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address7, address7 + 0x600, b[12], b[13])));
 
                 await Task.WhenAll(tasks);
 
@@ -4049,7 +4047,7 @@ namespace ACNHPoker
         {
             try
             {
-                byte[] Coordinate = Utilities.getCoordinate(s, bot);
+                byte[] Coordinate = Utilities.getCoordinate(_sysBot);
                 int x = BitConverter.ToInt32(Coordinate, 0);
                 int y = BitConverter.ToInt32(Coordinate, 4);
 
@@ -4092,7 +4090,7 @@ namespace ACNHPoker
         private void bulkSpawnToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (bulk == null)
-                bulk = new bulkSpawn(s, bot, Layer1, Layer2, Acre, anchorX, anchorY, this, ignore, sound); ;
+                bulk = new bulkSpawn(_sysBot, Layer1, Layer2, Acre, anchorX, anchorY, this, ignore, sound); ;
             bulk.StartPosition = FormStartPosition.CenterParent;
             bulk.ShowDialog();
         }
@@ -4494,8 +4492,8 @@ namespace ACNHPoker
                     {
                         byte[] column = new byte[0x1800];
                         Buffer.BlockCopy(newLayer, i * 0x1800, column, 0, 0x1800);
-                        Utilities.SendByteArray8(s, Utilities.mapZero + (i * 0x1800), column, 0x1800, ref counter);
-                        Utilities.SendByteArray8(s, Utilities.mapZero + (i * 0x1800) + Utilities.mapOffset, column, 0x1800, ref counter);
+                        Utilities.SendByteArray8(_sysBot, Utilities.mapZero + (i * 0x1800), column, 0x1800, ref counter);
+                        Utilities.SendByteArray8(_sysBot, Utilities.mapZero + (i * 0x1800) + Utilities.mapOffset, column, 0x1800, ref counter);
                     }
                 }
 
@@ -4552,16 +4550,16 @@ namespace ACNHPoker
                     {
                         byte[] column = new byte[0x1800];
                         Buffer.BlockCopy(newLayer1, i * 0x1800, column, 0, 0x1800);
-                        Utilities.SendByteArray8(s, Utilities.mapZero + (i * 0x1800), column, 0x1800, ref counter);
-                        Utilities.SendByteArray8(s, Utilities.mapZero + (i * 0x1800) + Utilities.mapOffset, column, 0x1800, ref counter);
+                        Utilities.SendByteArray8(_sysBot, Utilities.mapZero + (i * 0x1800), column, 0x1800, ref counter);
+                        Utilities.SendByteArray8(_sysBot, Utilities.mapZero + (i * 0x1800) + Utilities.mapOffset, column, 0x1800, ref counter);
                     }
 
                     if (change2[i])
                     {
                         byte[] column = new byte[0x1800];
                         Buffer.BlockCopy(newLayer2, i * 0x1800, column, 0, 0x1800);
-                        Utilities.SendByteArray8(s, Utilities.mapZero + Utilities.mapSize + (i * 0x1800), column, 0x1800, ref counter);
-                        Utilities.SendByteArray8(s, Utilities.mapZero + Utilities.mapSize + (i * 0x1800) + Utilities.mapOffset, column, 0x1800, ref counter);
+                        Utilities.SendByteArray8(_sysBot, Utilities.mapZero + Utilities.mapSize + (i * 0x1800), column, 0x1800, ref counter);
+                        Utilities.SendByteArray8(_sysBot, Utilities.mapZero + Utilities.mapSize + (i * 0x1800) + Utilities.mapOffset, column, 0x1800, ref counter);
                     }
                 }
 
@@ -4605,7 +4603,7 @@ namespace ACNHPoker
         #region Debug
         private void saveDebug_Click(object sender, EventArgs e)
         {
-            byte[] b = Utilities.getSaving(s, bot);
+            byte[] b = Utilities.getSaving(_sysBot);
             if (b == null)
                 return;
             byte saving = b[0];
@@ -4630,7 +4628,7 @@ namespace ACNHPoker
             if (saveTime > 100)
                 return false;
 
-            byte[] b = Utilities.getSaving(s, bot);
+            byte[] b = Utilities.getSaving(_sysBot);
 
             if (b == null)
                 return true;
@@ -4660,7 +4658,7 @@ namespace ACNHPoker
         {
             try
             {
-                byte[] b = Utilities.getSaving(s, bot);
+                byte[] b = Utilities.getSaving(_sysBot);
                 if (b == null)
                     throw new NullReferenceException("Save");
 
@@ -4787,7 +4785,7 @@ namespace ACNHPoker
 
                 UInt32 currentColumn = (UInt32)(address + (0xC00 * (anchorX - 3)) + (0x10 * (anchorY - 3)));
 
-                byte[] readFloor = Utilities.ReadByteArray8(s, currentColumn, 0x4E70);
+                byte[] readFloor = Utilities.ReadByteArray8(_sysBot, currentColumn, 0x4E70);
                 byte[] curFloor = new byte[1568];
 
                 Buffer.BlockCopy(readFloor, 0x0, curFloor, 0x0, 0x70);
@@ -4822,13 +4820,13 @@ namespace ACNHPoker
 
                 List<Task> tasks = new List<Task>();
 
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address1, address1 + 0x600, b[0], b[1])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address2, address2 + 0x600, b[2], b[3])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address3, address3 + 0x600, b[4], b[5])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address4, address4 + 0x600, b[6], b[7])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address5, address5 + 0x600, b[8], b[9])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address6, address6 + 0x600, b[10], b[11])));
-                tasks.Add(Task.Run(() => Utilities.dropColumn2(s, bot, address7, address7 + 0x600, b[12], b[13])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address1, address1 + 0x600, b[0], b[1])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address2, address2 + 0x600, b[2], b[3])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address3, address3 + 0x600, b[4], b[5])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address4, address4 + 0x600, b[6], b[7])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address5, address5 + 0x600, b[8], b[9])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address6, address6 + 0x600, b[10], b[11])));
+                tasks.Add(Task.Run(() => Utilities.dropColumn2(_sysBot, address7, address7 + 0x600, b[12], b[13])));
 
                 await Task.WhenAll(tasks);
 

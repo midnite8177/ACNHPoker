@@ -20,11 +20,19 @@ namespace ACNHPoker
         public int MaximumTransferSize { get { return 468; } }
 
         private static readonly Encoding Encoder = Encoding.UTF8;
-        private static byte[] Encode(string command, bool addrn = true) => Encoder.GetBytes(addrn ? command + "\r\n" : command);
+        private static byte[] Encode(string command, bool addrn = true) => Encoder.GetBytes(addrn ? command + "\r\n" : command + "\0\0");
 
-        public static byte[] PokeRaw(uint offset, byte[] data) => Encode($"poke 0x{offset:X8} 0x{string.Concat(data.Select(z => $"{z:X2}"))}", false);
+        public static byte[] PokeRaw(long offset, byte[] data) => Encode($"poke 0x{offset:X8} 0x{string.Concat(data.Select(z => $"{z:X2}"))}", false);
 
-        public static byte[] PeekRaw(uint offset, int count) => Encode($"peek 0x{offset:X8} {count}", false);
+        public static byte[] PeekRaw(long offset, int count) => Encode($"peek 0x{offset:X8} {count}", false);
+
+        public static byte[] PokeMain(long offset, byte[] data) => Encode($"pokeMain 0x{offset:X8} 0x{string.Concat(data.Select(z => $"{z:X2}"))}", false);
+
+        public static byte[] PeekMain(long offset, int count) => Encode($"peekMain 0x{offset:X8} {count}", false);
+
+        public static byte[] PokeAbsolute(long offset, byte[] data) => Encode($"pokeAbsolute 0x{offset:X8} 0x{string.Concat(data.Select(z => $"{z:X2}"))}", false);
+
+        public static byte[] PeekAbsolute(long offset, int count) => Encode($"peekAbsolute 0x{offset:X8} {count}", false);
 
         public bool Connected { get; private set; }
 
@@ -116,18 +124,95 @@ namespace ACNHPoker
             }
         }
 
+        void ReadInternalHelper(byte[] buffer, out int bufferTransferred)
+        {
+            int retryCount = 0;
+
+            while (true)
+            {
+                var ec = reader.Read(buffer, 2000, out bufferTransferred);
+                if (ec == ErrorCode.IoTimedOut)
+                {
+                    System.Diagnostics.Debug.Assert(bufferTransferred == 0);
+                    Thread.Sleep(1);
+                    ++retryCount;
+                    if (retryCount == 30)
+                        throw new Exception("USBBot - Timeout");
+                    continue;
+                }
+
+                if (ec != ErrorCode.None)
+                {
+                    Disconnect();
+                    throw new Exception(UsbDevice.LastErrorString);
+                }
+
+                if (bufferTransferred != buffer.Length)
+                {
+                    Console.WriteLine($"READ: {bufferTransferred}, SHOULD BE {buffer.Length}");
+                }
+
+                return;
+            }
+        }
+
+        void SendInternalHelper(byte[] buffer, out int bufferTransferred)
+        {
+            int retryCount = 0;
+
+            while (true)
+            {
+                var ec = writer.Write(buffer, 2000, out bufferTransferred);
+                if (ec == ErrorCode.IoTimedOut)
+                {
+                    System.Diagnostics.Debug.Assert(bufferTransferred == 0);
+                    Thread.Sleep(1);
+                    ++retryCount;
+                    if (retryCount == 30)
+                        throw new Exception("USBBot - Timeout");
+                    continue;
+                }
+
+                if (ec != ErrorCode.None)
+                {
+                    Disconnect();
+                    throw new Exception(UsbDevice.LastErrorString);
+                }
+
+                if (bufferTransferred != buffer.Length)
+                {
+                    Console.WriteLine($"WROTE: {bufferTransferred}, SHOULD BE {buffer.Length}");
+                }
+
+                return;
+            }
+        }
+
         private int ReadInternal(byte[] buffer)
         {
-            byte[] sizeOfReturn = new byte[4];
-
-            //read size, no error checking as of yet, should be the required 368 bytes
             if (reader == null)
                 throw new Exception("USB writer is null, you may have disconnected the device during previous function");
 
-            reader.Read(sizeOfReturn, 5000, out _);
+            // read the size of the transfer ahead (4-bytes)
+            byte[] sizeOfReturn = new byte[4];
+            ReadInternalHelper(sizeOfReturn, out var xferLengthLen);
+            if( xferLengthLen != 4 )
+                throw new Exception("USB Read: Expected 4 bytes");
 
-            //read stack
-            reader.Read(buffer, 5000, out var lenVal);
+            // how much data is coming?
+            uint xferLength = BitConverter.ToUInt32(sizeOfReturn, 0);
+            if( xferLength != buffer.Length )
+            {
+                Console.WriteLine("USB READ: {0} bytes in, but only reading {1}", xferLength, buffer.Length);
+            }
+
+            // read the payload (xferLength bytes)
+            ReadInternalHelper(buffer, out var lenVal);
+            if( lenVal != xferLength )
+            {
+                Console.WriteLine("USB READ: Read {0} bytes, but there are {1} in the pipe", lenVal, xferLength);
+            }
+
             return lenVal;
         }
 
@@ -136,27 +221,22 @@ namespace ACNHPoker
             if (writer == null)
                 throw new Exception("USB writer is null, you may have disconnected the device during previous function");
 
-            uint pack = (uint)buffer.Length + 2;
-            try
+            // Write the size of the payload (4-bytes)
+            uint pack = (uint)buffer.Length;
+            SendInternalHelper(BitConverter.GetBytes(pack), out var sizeWritten);
+            if (sizeWritten != 4)
             {
-                var ec = writer.Write(BitConverter.GetBytes(pack), 2000, out _);
-                if (ec != ErrorCode.None)
-                {
-                    Disconnect();
-                    throw new Exception(UsbDevice.LastErrorString);
-                }
-                ec = writer.Write(buffer, 2000, out var l);
-                if (ec != ErrorCode.None)
-                {
-                    Disconnect();
-                    throw new Exception(UsbDevice.LastErrorString);
-                }
-                return l;
+                Console.WriteLine($"USB WRITE: Expected to transfer 4 bytes, but only sent {sizeWritten}");
             }
-            catch
+
+            // Send the payload
+            SendInternalHelper(buffer, out var payloadXfered);
+            if (payloadXfered != pack)
             {
-                return 0;
+                Console.WriteLine($"USB WRITE: Expected to transfer {pack} bytes, but only sent {payloadXfered}");
             }
+
+            return payloadXfered;
         }
 
         public int Read(byte[] buffer)
@@ -167,7 +247,7 @@ namespace ACNHPoker
             }
         }
 
-        public byte[] ReadBytes(uint offset, int length)
+        public byte[] ReadBytes(long offset, int length)
         {
             lock (_sync)
             {
@@ -175,23 +255,108 @@ namespace ACNHPoker
                 SendInternal(cmd);
 
                 // give it time to push data back
-                Thread.Sleep((length / 256) + 100);
+                ReadWait(length);
 
                 var buffer = new byte[length];
                 var _ = ReadInternal(buffer);
-                //return Decoder.ConvertHexByteStringToBytes(buffer);
                 return buffer;
             }
         }
 
-        public void WriteBytes(byte[] data, uint offset)
+        public byte[] ReadBytesMain(long offset, int length)
+        {
+            lock (_sync)
+            {
+                var cmd = PeekMain(offset, length);
+                SendInternal(cmd);
+
+                // give it time to push data back
+                ReadWait(length);
+
+                var buffer = new byte[length];
+                var _ = ReadInternal(buffer);
+                return buffer;
+            }
+        }
+
+        public byte[] ReadBytesAbsolute(long offset, int length)
+        {
+            lock (_sync)
+            {
+                var cmd = PeekAbsolute(offset, length);
+                SendInternal(cmd);
+
+                // give it time to push data back
+                ReadWait(length);
+
+                var buffer = new byte[length];
+                var _ = ReadInternal(buffer);
+                return buffer;
+            }
+        }
+
+        private void ReadWait(int numBytesRead)
+        {
+            //Thread.Sleep((numBytesRead / 256) + 100);
+            //Thread.Sleep(1);
+        }
+
+        private void WriteWait(int numBytesWritten)
+        {
+            //int numMilli = (numBytesWritten / 256) + 100;
+            //Thread.Sleep(numMilli);
+            //Thread.Sleep(1);
+        }
+
+        public void WriteRawBytes(byte[] data, int offset, int len)
+        {
+            lock (_sync)
+            {
+                if (offset == 0 && len == data.Length)
+                {
+                    SendInternal(data);
+                }
+                else
+                {
+                    byte[] subData = SubArray(data, offset, len);
+                    SendInternal(subData);
+                }
+
+                // give it time to push data back
+                WriteWait(len);
+            }
+        }
+
+        public void WriteBytes(byte[] data, long offset)
         {
             lock (_sync)
             {
                 SendInternal(PokeRaw(offset, data));
 
                 // give it time to push data back
-                Thread.Sleep((data.Length / 256) + 100);
+                WriteWait(data.Length);
+            }
+        }
+
+        public void WriteBytesMain(byte[] data, long offset)
+        {
+            lock (_sync)
+            {
+                SendInternal(PokeMain(offset, data));
+
+                // give it time to push data back
+                WriteWait(data.Length);
+            }
+        }
+
+        public void WriteBytesAbsolute(byte[] data, long offset)
+        {
+            lock (_sync)
+            {
+                SendInternal(PokeAbsolute(offset, data));
+
+                // give it time to push data back
+                WriteWait(data.Length);
             }
         }
 

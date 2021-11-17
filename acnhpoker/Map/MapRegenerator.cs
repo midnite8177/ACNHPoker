@@ -15,7 +15,7 @@ namespace ACNHPoker
 {
     public partial class MapRegenerator : Form
     {
-        private static Socket s;
+        private ISysBot _sysBot;
         private Form1 main;
         private int counter = 0;
         private Boolean loop = false;
@@ -39,11 +39,11 @@ namespace ACNHPoker
         public dodo dodoSetup = null;
 
         #region Form Load
-        public MapRegenerator(Socket S, Form1 Main, bool Sound)
+        public MapRegenerator(ISysBot sysBot, Form1 Main, bool Sound)
         {
             try
             {
-                s = S;
+                _sysBot = sysBot;
                 main = Main;
                 sound = Sound;
 
@@ -60,7 +60,7 @@ namespace ACNHPoker
                     Log.logEvent("Regen", "A Shiny Has Appeared!");
                 }
 
-                Debug.Print(Utilities.GetFreezeCount(s).ToString());
+                Debug.Print(Utilities.GetFreezeCount(_sysBot).ToString());
 
                 Log.logEvent("Regen", "RegenForm Started Successfully");
             }
@@ -127,7 +127,7 @@ namespace ACNHPoker
         {
             showMapWait(42, "Saving...");
 
-            byte[] save = Utilities.ReadByteArray8(s, address, 0x54000, ref counter);
+            byte[] save = Utilities.ReadByteArray8(_sysBot, address, 0x54000, ref counter);
 
             File.WriteAllBytes(file.FileName, save);
 
@@ -211,8 +211,8 @@ namespace ACNHPoker
 
             for (int i = 0; i < 42; i++)
             {
-                Utilities.SendByteArray8(s, address + (i * 0x2000), b[i], 0x2000, ref counter);
-                Utilities.SendByteArray8(s, address + (i * 0x2000) + Utilities.mapOffset, b[i], 0x2000, ref counter);
+                Utilities.SendByteArray8(_sysBot, address + (i * 0x2000), b[i], 0x2000, ref counter);
+                Utilities.SendByteArray8(_sysBot, address + (i * 0x2000) + Utilities.mapOffset, b[i], 0x2000, ref counter);
             }
 
             Thread.Sleep(3000);
@@ -386,7 +386,7 @@ namespace ACNHPoker
                     this.Width = 485;
                     if (MiniMap == null)
                     {
-                        byte[] Acre = Utilities.getAcre(s, null);
+                        byte[] Acre = Utilities.getAcre(_sysBot);
 
                         if (MiniMap == null)
                             MiniMap = new miniMap(data, Acre);
@@ -397,7 +397,7 @@ namespace ACNHPoker
                         return;
                     try
                     {
-                        byte[] Coordinate = Utilities.getCoordinate(s, null);
+                        byte[] Coordinate = Utilities.getCoordinate(_sysBot);
                         int x = BitConverter.ToInt32(Coordinate, 0);
                         int y = BitConverter.ToInt32(Coordinate, 4);
 
@@ -583,7 +583,7 @@ namespace ACNHPoker
             showMapWait(42, regenMsg);
 
             if (keepVillagerBox.Checked)
-                prepareVillager(s);
+                prepareVillager(_sysBot);
 
             byte[] c = new byte[0x2000];
 
@@ -602,7 +602,7 @@ namespace ACNHPoker
                 dodoSetup.LockBtn();
             }
 
-            Utilities.sendBlankName(s);
+            Utilities.sendBlankName(_sysBot);
             teleport.OverworldState state;
 
             do
@@ -638,7 +638,7 @@ namespace ACNHPoker
                         });
 
                         Thread.Sleep(70000);
-                        Utilities.sendBlankName(s);
+                        Utilities.sendBlankName(_sysBot);
 
                         this.Invoke((MethodInvoker)delegate
                         {
@@ -677,7 +677,7 @@ namespace ACNHPoker
                             {
                                 lock (mapLock)
                                 {
-                                    c = Utilities.ReadByteArray8(s, address + (i * 0x2000), 0x2000, ref counter);
+                                    c = Utilities.ReadByteArray8(_sysBot, address + (i * 0x2000), 0x2000, ref counter);
 
                                     if (c != null)
                                     {
@@ -689,7 +689,7 @@ namespace ACNHPoker
                                         else
                                         {
                                             Debug.Print("Replace " + i);
-                                            Utilities.SendByteArray8(s, address + (i * 0x2000), b[i], 0x2000, ref writeCount);
+                                            Utilities.SendByteArray8(_sysBot, address + (i * 0x2000), b[i], 0x2000, ref writeCount);
                                             Thread.Sleep(500);
                                         }
                                     }
@@ -807,7 +807,7 @@ namespace ACNHPoker
             }
 
             if (keepVillagerBox.Checked)
-                prepareVillager(s);
+                prepareVillager(_sysBot);
 
             byte[] c = new byte[0x2000];
 
@@ -826,7 +826,7 @@ namespace ACNHPoker
                 dodoSetup.LockBtn();
             }
 
-            Utilities.sendBlankName(s);
+            Utilities.sendBlankName(_sysBot);
             teleport.OverworldState state;
             do
             {
@@ -860,7 +860,7 @@ namespace ACNHPoker
                         });
 
                         Thread.Sleep(70000);
-                        Utilities.sendBlankName(s);
+                        Utilities.sendBlankName(_sysBot);
 
                         this.Invoke((MethodInvoker)delegate
                         {
@@ -899,7 +899,7 @@ namespace ACNHPoker
                             {
                                 lock (mapLock)
                                 {
-                                    c = Utilities.ReadByteArray8(s, address + (i * 0x1800), 0x1800, ref counter);
+                                    c = Utilities.ReadByteArray8(_sysBot, address + (i * 0x1800), 0x1800, ref counter);
 
                                     if (c != null)
                                     {
@@ -911,7 +911,7 @@ namespace ACNHPoker
                                         else
                                         {
                                             Debug.Print("Replace " + i);
-                                            Utilities.SendByteArray8(s, address + (i * 0x1800), u[i], 0x1800, ref writeCount);
+                                            Utilities.SendByteArray8(_sysBot, address + (i * 0x1800), u[i], 0x1800, ref writeCount);
                                             Thread.Sleep(500);
                                         }
                                     }
@@ -1294,7 +1294,7 @@ namespace ACNHPoker
 
         private string getVisitorName()
         {
-            byte[] b = Utilities.getVisitorName(s);
+            byte[] b = Utilities.getVisitorName(_sysBot);
             if (b == null)
             {
                 return string.Empty;
@@ -1502,7 +1502,7 @@ namespace ACNHPoker
 
         #region Villager
 
-        public static void prepareVillager(Socket s)
+        public static void prepareVillager(ISysBot bot)
         {
             villagerFlag = new byte[10][];
             villager = new byte[10][];
@@ -1510,21 +1510,21 @@ namespace ACNHPoker
 
             for (int i = 0; i < 10; i++)
             {
-                villager[i] = Utilities.GetVillager(s, null, i, 0x3);
-                villagerFlag[i] = Utilities.GetMoveout(s, null, i, (int)0x33);
+                villager[i] = Utilities.GetVillager(bot, i, 0x3);
+                villagerFlag[i] = Utilities.GetMoveout(bot, i, (int)0x33);
                 haveVillager[i] = checkHaveVillager(villager[i]);
             }
             writeVillager(villager, haveVillager);
         }
 
-        public static void updateVillager(Socket s, int index)
+        public static void updateVillager(ISysBot bot, int index)
         {
             if (villager == null)
-                prepareVillager(s);
+                prepareVillager(bot);
             else
             {
-                villager[index] = Utilities.GetVillager(s, null, index, 0x3);
-                villagerFlag[index] = Utilities.GetMoveout(s, null, index, (int)0x33);
+                villager[index] = Utilities.GetVillager(bot, index, 0x3);
+                villagerFlag[index] = Utilities.GetMoveout(bot, index, (int)0x33);
                 haveVillager[index] = true;
 
                 writeVillager(villager, haveVillager);
@@ -1562,10 +1562,10 @@ namespace ACNHPoker
             }
             else
             {
-                string ByteString = Utilities.ByteToHexString(Utilities.GetMoveout(s, null, index, (int)0x33, ref counter));
+                string ByteString = Utilities.ByteToHexString(Utilities.GetMoveout(_sysBot, index, (int)0x33, ref counter));
                 if (!ByteString.Equals(Utilities.ByteToHexString(villagerFlag)))
                 {
-                    Utilities.SetMoveout(s, null, index, villagerFlag, ref counter);
+                    Utilities.SetMoveout(_sysBot, index, villagerFlag, ref counter);
                     Debug.Print("Reset Villager " + index);
                     Log.logEvent("Regen", "Villager Reset : " + index);
                 }
@@ -1587,7 +1587,7 @@ namespace ACNHPoker
                 {
                     if (i == 0)
                         continue;
-                    namelist[i] = Utilities.GetVisitorName(s, null, i);
+                    namelist[i] = Utilities.GetVisitorName(_sysBot, i);
                     if (namelist[i].Equals(String.Empty))
                         sw.WriteLine("[Empty]");
                     else
@@ -1617,7 +1617,7 @@ namespace ACNHPoker
                 btn.Tag = "Disable";
                 btn.BackColor = Color.Orange;
 
-                dodoSetup = new dodo(s, this);
+                dodoSetup = new dodo(_sysBot, this);
                 dodoSetup.Show();
                 dodoSetup.Location = new Point(this.Location.X - 590, this.Location.Y);
                 dodoSetup.ControlBox = false;

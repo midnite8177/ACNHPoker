@@ -14,14 +14,14 @@ namespace ACNHPoker
     {
         private string UpdateTownID()
         {
-            byte[] townID = Utilities.GetTownID(s, null);
+            byte[] townID = Utilities.GetTownID(_sysBot);
             IslandName = Utilities.GetString(townID, 0x04, 10);
             return "  |  Island Name : " + IslandName;
         }
 
         private void readWeatherSeed()
         {
-            byte[] b = Utilities.GetWeatherSeed(s, bot);
+            byte[] b = Utilities.GetWeatherSeed(_sysBot);
             string result = Utilities.ByteToHexString(b);
             UInt32 decValue = Convert.ToUInt32(Utilities.flip(result), 16);
             UInt32 Seed = decValue - 2147483648;
@@ -30,7 +30,7 @@ namespace ACNHPoker
 
         private void eatBtn_Click(object sender, EventArgs e)
         {
-            Utilities.setStamina(s, bot, "0A");
+            Utilities.setStamina(_sysBot, "0A");
 
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
@@ -40,7 +40,7 @@ namespace ACNHPoker
 
         private void poopBtn_Click(object sender, EventArgs e)
         {
-            Utilities.setStamina(s, bot, "00");
+            Utilities.setStamina(_sysBot, "00");
 
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
@@ -307,8 +307,8 @@ namespace ACNHPoker
 
                     if (!offline)
                     {
-                        byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
-                        byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+                        byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+                        byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
 
                         int slot = int.Parse(owner.SourceControl.Tag.ToString());
                         byte[] slotBytes = new byte[2];
@@ -339,7 +339,7 @@ namespace ACNHPoker
                             return;
                         }
 
-                        Utilities.setFlag1(s, bot, slot, flag);
+                        Utilities.setFlag1(_sysBot, slot, flag);
 
                         var btnParent = (inventorySlot)owner.SourceControl;
                         btnParent.setFlag1(flag);
@@ -441,8 +441,8 @@ namespace ACNHPoker
 
                 if (!offline)
                 {
-                    byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
-                    byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+                    byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+                    byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
                     Bank = Utilities.ByteToHexString(Bank01to20) + Utilities.ByteToHexString(Bank21to40);
 
 
@@ -493,9 +493,10 @@ namespace ACNHPoker
             }
             catch
             {
-                if (s != null)
+                if(_sysBot != null)
                 {
-                    s.Close();
+                    _sysBot.Close();
+                    _sysBot = null;
                 }
                 return;
             }
@@ -550,9 +551,10 @@ namespace ACNHPoker
             }
             catch
             {
-                if (s != null)
+                if(_sysBot != null)
                 {
-                    s.Close();
+                    _sysBot.Close();
+                    _sysBot = null;
                 }
                 return;
             }
@@ -571,8 +573,8 @@ namespace ACNHPoker
 
             if (!offline)
             {
-                byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
-                byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+                byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+                byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
 
                 byte[] currentInventory = new byte[320];
 
@@ -598,7 +600,7 @@ namespace ACNHPoker
                             b2[i] = data[i + 160];
                         }
 
-                        Utilities.OverwriteAll(s, bot, b1, b2, ref counter);
+                        Utilities.OverwriteAll(_sysBot, b1, b2, ref counter);
                     }
                     else
                     {
@@ -614,7 +616,7 @@ namespace ACNHPoker
                     b2 = Bank21to40;
                     fillInventory(ref b1, ref b2, item);
 
-                    Utilities.OverwriteAll(s, bot, b1, b2, ref counter);
+                    Utilities.OverwriteAll(_sysBot, b1, b2, ref counter);
                 }
             }
             else
@@ -840,8 +842,8 @@ namespace ACNHPoker
         private int findEmpty()
         {
             /*
-            byte[] Bank01to20 = Utilities.GetInventoryBank(s, bot, 1);
-            byte[] Bank21to40 = Utilities.GetInventoryBank(s, bot, 21);
+            byte[] Bank01to20 = Utilities.GetInventoryBank(_sysBot, 1);
+            byte[] Bank21to40 = Utilities.GetInventoryBank(_sysBot, 21);
             //string Bank1 = Encoding.ASCII.GetString(Bank01to20);
             //string Bank2 = Encoding.ASCII.GetString(Bank21to40);
             //Debug.Print(Bank1);
@@ -901,75 +903,34 @@ namespace ACNHPoker
 
         private void UpdateTurnipPrices()
         {
-            UInt64[] turnipPrices = Utilities.GetTurnipPrices(s, bot);
+            UInt32[] turnipPrices = Utilities.GetTurnipPrices(_sysBot);
             turnipBuyPrice.Clear();
             turnipBuyPrice.SelectionAlignment = HorizontalAlignment.Center;
             turnipBuyPrice.Text = String.Format("{0}", turnipPrices[12]);
-            UInt64 buyPrice = UInt64.Parse(String.Format("{0}", turnipPrices[12]));
+            UInt64 buyPrice = turnipPrices[12];
 
-            turnipSell1AM.Clear();
-            turnipSell1AM.Text = String.Format("{0}", turnipPrices[0]);
-            UInt64 MondayAM = UInt64.Parse(String.Format("{0}", turnipPrices[0]));
-            setTurnipColor(buyPrice, MondayAM, turnipSell1AM);
+            RichTextBox[] rtBoxes = new RichTextBox[12]
+            {
+                turnipSell1AM, turnipSell1PM,
+                turnipSell2AM, turnipSell2PM,
+                turnipSell3AM, turnipSell3PM,
+                turnipSell4AM, turnipSell4PM,
+                turnipSell5AM, turnipSell5PM,
+                turnipSell6AM, turnipSell6PM,
+            };
 
-            turnipSell1PM.Clear();
-            turnipSell1PM.Text = String.Format("{0}", turnipPrices[1]);
-            UInt64 MondayPM = UInt64.Parse(String.Format("{0}", turnipPrices[1]));
-            setTurnipColor(buyPrice, MondayPM, turnipSell1PM);
+            UInt64[] prices = new UInt64[12];
+            for( int i = 0; i < 12; ++i )
+            {
+                prices[i] = turnipPrices[i];
+                RichTextBox rt = rtBoxes[i];
+                rt.Clear();
+                rt.Text = String.Format("{0}", prices[i]);
+                setTurnipColor(buyPrice, prices[i], rt);
+            }
 
-            turnipSell2AM.Clear();
-            turnipSell2AM.Text = String.Format("{0}", turnipPrices[2]);
-            UInt64 TuesdayAM = UInt64.Parse(String.Format("{0}", turnipPrices[2]));
-            setTurnipColor(buyPrice, TuesdayAM, turnipSell2AM);
-
-            turnipSell2PM.Clear();
-            turnipSell2PM.Text = String.Format("{0}", turnipPrices[3]);
-            UInt64 TuesdayPM = UInt64.Parse(String.Format("{0}", turnipPrices[3]));
-            setTurnipColor(buyPrice, TuesdayPM, turnipSell2PM);
-
-            turnipSell3AM.Clear();
-            turnipSell3AM.Text = String.Format("{0}", turnipPrices[4]);
-            UInt64 WednesdayAM = UInt64.Parse(String.Format("{0}", turnipPrices[4]));
-            setTurnipColor(buyPrice, WednesdayAM, turnipSell3AM);
-
-            turnipSell3PM.Clear();
-            turnipSell3PM.Text = String.Format("{0}", turnipPrices[5]);
-            UInt64 WednesdayPM = UInt64.Parse(String.Format("{0}", turnipPrices[5]));
-            setTurnipColor(buyPrice, WednesdayPM, turnipSell3PM);
-
-            turnipSell4AM.Clear();
-            turnipSell4AM.Text = String.Format("{0}", turnipPrices[6]);
-            UInt64 ThursdayAM = UInt64.Parse(String.Format("{0}", turnipPrices[6]));
-            setTurnipColor(buyPrice, ThursdayAM, turnipSell4AM);
-
-            turnipSell4PM.Clear();
-            turnipSell4PM.Text = String.Format("{0}", turnipPrices[7]);
-            UInt64 ThursdayPM = UInt64.Parse(String.Format("{0}", turnipPrices[7]));
-            setTurnipColor(buyPrice, ThursdayPM, turnipSell4PM);
-
-            turnipSell5AM.Clear();
-            turnipSell5AM.Text = String.Format("{0}", turnipPrices[8]);
-            UInt64 FridayAM = UInt64.Parse(String.Format("{0}", turnipPrices[8]));
-            setTurnipColor(buyPrice, FridayAM, turnipSell5AM);
-
-            turnipSell5PM.Clear();
-            turnipSell5PM.Text = String.Format("{0}", turnipPrices[9]);
-            UInt64 FridayPM = UInt64.Parse(String.Format("{0}", turnipPrices[9]));
-            setTurnipColor(buyPrice, FridayPM, turnipSell5PM);
-
-            turnipSell6AM.Clear();
-            turnipSell6AM.Text = String.Format("{0}", turnipPrices[10]);
-            UInt64 SaturdayAM = UInt64.Parse(String.Format("{0}", turnipPrices[10]));
-            setTurnipColor(buyPrice, SaturdayAM, turnipSell6AM);
-
-            turnipSell6PM.Clear();
-            turnipSell6PM.Text = String.Format("{0}", turnipPrices[11]);
-            UInt64 SaturdayPM = UInt64.Parse(String.Format("{0}", turnipPrices[11]));
-            setTurnipColor(buyPrice, SaturdayPM, turnipSell6PM);
-
-            UInt64[] price = { MondayAM, MondayPM, TuesdayAM, TuesdayPM, WednesdayAM, WednesdayPM, ThursdayAM, ThursdayPM, FridayAM, FridayPM, SaturdayAM, SaturdayPM };
-            UInt64 highest = findHighest(price);
-            setStar(highest, MondayAM, MondayPM, TuesdayAM, TuesdayPM, WednesdayAM, WednesdayPM, ThursdayAM, ThursdayPM, FridayAM, FridayPM, SaturdayAM, SaturdayPM);
+            UInt64 highest = findHighest(prices);
+            setStar(highest, prices);
         }
 
         private void setTurnipColor(UInt64 buyPrice, UInt64 comparePrice, RichTextBox target)
@@ -999,30 +960,27 @@ namespace ACNHPoker
             return highest;
         }
 
-        private void setStar(UInt64 highest, UInt64 MondayAM, UInt64 MondayPM, UInt64 TuesdayAM, UInt64 TuesdayPM, UInt64 WednesdayAM, UInt64 WednesdayPM, UInt64 ThursdayAM, UInt64 ThursdayPM, UInt64 FridayAM, UInt64 FridayPM, UInt64 SaturdayAM, UInt64 SaturdayPM)
+        private void setStar(UInt64 highest, UInt64[] prices)
         {
-            if (MondayAM >= highest) { mondayAMStar.Visible = true; } else { mondayAMStar.Visible = false; };
-            if (MondayPM >= highest) { mondayPMStar.Visible = true; } else { mondayPMStar.Visible = false; };
+            Label[] labels = new Label[12]
+            {
+                mondayAMStar, mondayPMStar,
+                tuesdayAMStar, tuesdayPMStar,
+                wednesdayAMStar, wednesdayPMStar,
+                thursdayAMStar, thursdayPMStar,
+                fridayAMStar, fridayPMStar,
+                saturdayAMStar, saturdayPMStar,
+            };
 
-            if (TuesdayAM >= highest) { tuesdayAMStar.Visible = true; } else { tuesdayAMStar.Visible = false; };
-            if (TuesdayPM >= highest) { tuesdayPMStar.Visible = true; } else { tuesdayPMStar.Visible = false; };
-
-            if (WednesdayAM >= highest) { wednesdayAMStar.Visible = true; } else { wednesdayAMStar.Visible = false; };
-            if (WednesdayPM >= highest) { wednesdayPMStar.Visible = true; } else { wednesdayPMStar.Visible = false; };
-
-            if (ThursdayAM >= highest) { thursdayAMStar.Visible = true; } else { thursdayAMStar.Visible = false; };
-            if (ThursdayPM >= highest) { thursdayPMStar.Visible = true; } else { thursdayPMStar.Visible = false; };
-
-            if (FridayAM >= highest) { fridayAMStar.Visible = true; } else { fridayAMStar.Visible = false; };
-            if (FridayPM >= highest) { fridayPMStar.Visible = true; } else { fridayPMStar.Visible = false; };
-
-            if (SaturdayAM >= highest) { saturdayAMStar.Visible = true; } else { saturdayAMStar.Visible = false; };
-            if (SaturdayPM >= highest) { saturdayPMStar.Visible = true; } else { saturdayPMStar.Visible = false; };
+            for( int i =0; i < 12; ++i )
+            {
+                labels[i].Visible = prices[i] >= highest;
+            }
         }
 
         private void loadReaction(int player = 0)
         {
-            byte[] reactionBank = Utilities.getReaction(s, bot, player);
+            byte[] reactionBank = Utilities.getReaction(_sysBot, player);
             //Debug.Print(Encoding.ASCII.GetString(reactionBank));
 
             byte[] reaction1 = new byte[1];
@@ -1079,7 +1037,7 @@ namespace ACNHPoker
 
             string reaction1 = (Utilities.precedingZeros((reactionSlot1.SelectedIndex + 1).ToString("X"), 2) + Utilities.precedingZeros((reactionSlot2.SelectedIndex + 1).ToString("X"), 2) + Utilities.precedingZeros((reactionSlot3.SelectedIndex + 1).ToString("X"), 2) + Utilities.precedingZeros((reactionSlot4.SelectedIndex + 1).ToString("X"), 2));
             string reaction2 = (Utilities.precedingZeros((reactionSlot5.SelectedIndex + 1).ToString("X"), 2) + Utilities.precedingZeros((reactionSlot6.SelectedIndex + 1).ToString("X"), 2) + Utilities.precedingZeros((reactionSlot7.SelectedIndex + 1).ToString("X"), 2) + Utilities.precedingZeros((reactionSlot8.SelectedIndex + 1).ToString("X"), 2));
-            Utilities.setReaction(s, bot, player, reaction1, reaction2);
+            Utilities.setReaction(_sysBot, player, reaction1, reaction2);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
             //}
@@ -1092,7 +1050,7 @@ namespace ACNHPoker
             speedX3Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             speedX4Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.wSpeedAddress.ToString("X"), Utilities.wSpeedX4);
+            Utilities.pokeMainAddress(_sysBot, Utilities.wSpeedAddress, Utilities.wSpeedX4);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1104,7 +1062,7 @@ namespace ACNHPoker
             speedX3Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
             speedX4Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.wSpeedAddress.ToString("X"), Utilities.wSpeedX3);
+            Utilities.pokeMainAddress(_sysBot, Utilities.wSpeedAddress, Utilities.wSpeedX3);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1116,7 +1074,7 @@ namespace ACNHPoker
             speedX3Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             speedX4Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.wSpeedAddress.ToString("X"), Utilities.wSpeedX2);
+            Utilities.pokeMainAddress(_sysBot, Utilities.wSpeedAddress, Utilities.wSpeedX2);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1128,7 +1086,7 @@ namespace ACNHPoker
             speedX3Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             speedX4Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.wSpeedAddress.ToString("X"), Utilities.wSpeedX1);
+            Utilities.pokeMainAddress(_sysBot, Utilities.wSpeedAddress, Utilities.wSpeedX1);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1141,7 +1099,7 @@ namespace ACNHPoker
             maxSpeedX5Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             maxSpeedX100Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeAddress(s, bot, Utilities.MaxSpeedAddress.ToString("X"), Utilities.MaxSpeedX1);
+            Utilities.pokeAddress(_sysBot, Utilities.MaxSpeedAddress, Utilities.MaxSpeedX1);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1154,7 +1112,7 @@ namespace ACNHPoker
             maxSpeedX5Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             maxSpeedX100Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeAddress(s, bot, Utilities.MaxSpeedAddress.ToString("X"), Utilities.MaxSpeedX2);
+            Utilities.pokeAddress(_sysBot, Utilities.MaxSpeedAddress, Utilities.MaxSpeedX2);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1167,7 +1125,7 @@ namespace ACNHPoker
             maxSpeedX5Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             maxSpeedX100Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeAddress(s, bot, Utilities.MaxSpeedAddress.ToString("X"), Utilities.MaxSpeedX3);
+            Utilities.pokeAddress(_sysBot, Utilities.MaxSpeedAddress, Utilities.MaxSpeedX3);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1180,7 +1138,7 @@ namespace ACNHPoker
             maxSpeedX5Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
             maxSpeedX100Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeAddress(s, bot, Utilities.MaxSpeedAddress.ToString("X"), Utilities.MaxSpeedX5);
+            Utilities.pokeAddress(_sysBot, Utilities.MaxSpeedAddress, Utilities.MaxSpeedX5);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1193,7 +1151,7 @@ namespace ACNHPoker
             maxSpeedX5Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             maxSpeedX100Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
 
-            Utilities.pokeAddress(s, bot, Utilities.MaxSpeedAddress.ToString("X"), Utilities.MaxSpeedX100);
+            Utilities.pokeAddress(_sysBot, Utilities.MaxSpeedAddress, Utilities.MaxSpeedX100);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1203,7 +1161,7 @@ namespace ACNHPoker
             disableCollisionBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
             enableCollisionBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.CollisionAddress.ToString("X"), Utilities.CollisionDisable);
+            Utilities.pokeMainAddress(_sysBot, Utilities.CollisionAddress, Utilities.CollisionDisable);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1213,7 +1171,7 @@ namespace ACNHPoker
             enableCollisionBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
             disableCollisionBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.CollisionAddress.ToString("X"), Utilities.CollisionEnable);
+            Utilities.pokeMainAddress(_sysBot, Utilities.CollisionAddress, Utilities.CollisionEnable);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1223,7 +1181,7 @@ namespace ACNHPoker
             freezeTimeBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
             unfreezeTimeBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.freezeTimeAddress.ToString("X"), Utilities.freezeTimeValue);
+            Utilities.pokeMainAddress(_sysBot, Utilities.freezeTimeAddress, Utilities.freezeTimeValue);
             readtime();
             timePanel.Visible = true;
 
@@ -1236,7 +1194,7 @@ namespace ACNHPoker
             unfreezeTimeBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
             freezeTimeBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.freezeTimeAddress.ToString("X"), Utilities.unfreezeTimeValue);
+            Utilities.pokeMainAddress(_sysBot, Utilities.freezeTimeAddress, Utilities.unfreezeTimeValue);
             timePanel.Visible = false;
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
@@ -1250,7 +1208,7 @@ namespace ACNHPoker
             animationSpdx50.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             animationSpdx5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.aSpeedAddress.ToString("X"), Utilities.aSpeedX2);
+            Utilities.pokeMainAddress(_sysBot, Utilities.aSpeedAddress, Utilities.aSpeedX2);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1263,7 +1221,7 @@ namespace ACNHPoker
             animationSpdx50.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             animationSpdx5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.aSpeedAddress.ToString("X"), Utilities.aSpeedX01);
+            Utilities.pokeMainAddress(_sysBot, Utilities.aSpeedAddress, Utilities.aSpeedX01);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1276,7 +1234,7 @@ namespace ACNHPoker
             animationSpdx50.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
             animationSpdx5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.aSpeedAddress.ToString("X"), Utilities.aSpeedX50);
+            Utilities.pokeMainAddress(_sysBot, Utilities.aSpeedAddress, Utilities.aSpeedX50);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1289,7 +1247,7 @@ namespace ACNHPoker
             animationSpdx50.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             animationSpdx5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.aSpeedAddress.ToString("X"), Utilities.aSpeedX1);
+            Utilities.pokeMainAddress(_sysBot, Utilities.aSpeedAddress, Utilities.aSpeedX1);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
@@ -1302,14 +1260,14 @@ namespace ACNHPoker
             animationSpdx50.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
             animationSpdx5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
 
-            Utilities.pokeMainAddress(s, bot, Utilities.aSpeedAddress.ToString("X"), Utilities.aSpeedX5);
+            Utilities.pokeMainAddress(_sysBot, Utilities.aSpeedAddress, Utilities.aSpeedX5);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
         }
 
         private void readtime()
         {
-            byte[] b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress, 6);
+            byte[] b = Utilities.peekAddress(_sysBot, Utilities.readTimeAddress, 6);
             string time = Utilities.ByteToHexString(b);
 
             Debug.Print(time);
@@ -1322,7 +1280,7 @@ namespace ACNHPoker
 
             if (year > 3000 || month > 12 || day > 31 || hour > 24 || min > 60) //Try for Chineses
             {
-                b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress + Utilities.ChineseLanguageOffset, 6);
+                b = Utilities.peekAddress(_sysBot, Utilities.readTimeAddress + Utilities.ChineseLanguageOffset, 6);
                 time = Utilities.ByteToHexString(b);
 
                 year = Convert.ToInt32(Utilities.flip(time.Substring(0, 4)), 16);
@@ -1421,13 +1379,13 @@ namespace ACNHPoker
 
             if (ChineseFlag)
             {
-                Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + Utilities.ChineseLanguageOffset).ToString("X"), Utilities.flip(Utilities.precedingZeros(hexYear, 4)));
-                Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x2 + Utilities.ChineseLanguageOffset).ToString("X"), Utilities.precedingZeros(hexMonth, 2) + Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2) + Utilities.precedingZeros(hexMin, 2));
+                Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + Utilities.ChineseLanguageOffset, Utilities.flip(Utilities.precedingZeros(hexYear, 4)));
+                Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x2 + Utilities.ChineseLanguageOffset, Utilities.precedingZeros(hexMonth, 2) + Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2) + Utilities.precedingZeros(hexMin, 2));
             }
             else
             {
-                Utilities.pokeAddress(s, bot, Utilities.readTimeAddress.ToString("X"), Utilities.flip(Utilities.precedingZeros(hexYear, 4)));
-                Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x2).ToString("X"), Utilities.precedingZeros(hexMonth, 2) + Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2) + Utilities.precedingZeros(hexMin, 2));
+                Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress, Utilities.flip(Utilities.precedingZeros(hexYear, 4)));
+                Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x2, Utilities.precedingZeros(hexMonth, 2) + Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2) + Utilities.precedingZeros(hexMin, 2));
             }
 
             if (sound)
@@ -1445,17 +1403,17 @@ namespace ACNHPoker
                 int decDay = int.Parse(dayTextbox.Text) - 1;
                 string hexDay = decDay.ToString("X");
                 if (ChineseFlag)
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x3 + Utilities.ChineseLanguageOffset).ToString("X"), Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x3 + Utilities.ChineseLanguageOffset, Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
                 else
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x3).ToString("X"), Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x3, Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
             }
             else
             {
                 string hexHour = decHour.ToString("X");
                 if (ChineseFlag)
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x4 + Utilities.ChineseLanguageOffset).ToString("X"), Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x4 + Utilities.ChineseLanguageOffset, Utilities.precedingZeros(hexHour, 2));
                 else
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x4).ToString("X"), Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x4, Utilities.precedingZeros(hexHour, 2));
             }
             readtime();
             if (sound)
@@ -1473,17 +1431,17 @@ namespace ACNHPoker
                 int decDay = int.Parse(dayTextbox.Text) + 1;
                 string hexDay = decDay.ToString("X");
                 if (ChineseFlag)
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x3 + Utilities.ChineseLanguageOffset).ToString("X"), Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x3 + Utilities.ChineseLanguageOffset, Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
                 else
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x3).ToString("X"), Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x3, Utilities.precedingZeros(hexDay, 2) + Utilities.precedingZeros(hexHour, 2));
             }
             else
             {
                 string hexHour = decHour.ToString("X");
                 if (ChineseFlag)
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x4 + Utilities.ChineseLanguageOffset).ToString("X"), Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x4 + Utilities.ChineseLanguageOffset, Utilities.precedingZeros(hexHour, 2));
                 else
-                    Utilities.pokeAddress(s, bot, (Utilities.readTimeAddress + 0x4).ToString("X"), Utilities.precedingZeros(hexHour, 2));
+                    Utilities.pokeAddress(_sysBot, Utilities.readTimeAddress + 0x4, Utilities.precedingZeros(hexHour, 2));
             }
             readtime();
             if (sound)
@@ -1495,94 +1453,45 @@ namespace ACNHPoker
 
             if (USBconnectBtn.Tag.ToString() == "connect")
             {
-                bot = new USBBot();
-                if (bot.Connect())
+                _bot = new USBBot();
+                _sysBot = null;
+                if (_bot.Connect())
                 {
                     Log.logEvent("MainForm", "Connection Succeeded : USB");
+                    _sysBot = new UsbBot(_bot);
 
-                    //playerSelectorInventory.SelectedIndex = updateDropdownBox();
+                    DoConnectionCommon();
+                    
                     /*
                     if (UpdateInventory())
                         return;
                     */
                     //UpdateTownID();
-                    //InitTimer();
-                    setEatBtn();
-                    if (!disableValidation)
-                    {
-                        UpdateTurnipPrices();
-                        loadReaction();
-                    }
-                    playerSelectorOther.SelectedIndex = 0;
 
-                    readWeatherSeed();
-                    this.connectBtn.Visible = false;
-                    this.refreshBtn.Visible = true;
-                    //this.playerSelectionPanel.Visible = true;
-                    //this.autoRefreshCheckBox.Visible = true;
-                    this.autoRefreshCheckBox.Checked = false;
-                    this.saveBtn.Visible = true;
-                    this.loadBtn.Visible = true;
-                    this.otherBtn.Visible = true;
-                    this.critterBtn.Visible = true;
-                    this.villagerBtn.Visible = true;
-                    this.wrapSetting.SelectedIndex = 0;
-                    //this.selectedItem.setHide(true);
+                    this.autoRefreshCheckBox.Checked = true;
+                    
+                    //this.pictureBox1.Visible = false;
+                    //this.pokeMainCheatPanel.Visible = false;
+
                     this.ipBox.Visible = false;
-                    this.pictureBox1.Visible = false;
-                    this.pokeMainCheatPanel.Visible = false;
-                    this.configBtn.Visible = false;
-                    this.playerSelectorInventory.Visible = true;
+                    this.connectBtn.Visible = false;
+                    this.USBconnectBtn.Text = "Disconnect";
+                    this.USBconnectBtn.Tag = "Disconnect";
                     this.Text += "  |  [Connected via USB]";
-                    //this.mapDropperBtn.Visible = true;
-
-                    currentGridView = insectGridView;
-
-                    LoadGridView(InsectAppearParam, insectGridView, ref insectRate, Utilities.InsectDataSize, Utilities.InsectNumRecords);
-                    LoadGridView(FishRiverAppearParam, riverFishGridView, ref riverFishRate, Utilities.FishDataSize, Utilities.FishRiverNumRecords, 1);
-                    LoadGridView(FishSeaAppearParam, seaFishGridView, ref seaFishRate, Utilities.FishDataSize, Utilities.FishSeaNumRecords, 1);
-                    LoadGridView(CreatureSeaAppearParam, seaCreatureGridView, ref seaCreatureRate, Utilities.SeaCreatureDataSize, Utilities.SeaCreatureNumRecords, 1);
-
-                    USBconnectBtn.Text = "Disconnect";
-                    USBconnectBtn.Tag = "Disconnect";
-
-                    offline = false;
                 }
                 else
                 {
                     Log.logEvent("MainForm", "Connection Failed : USB");
-                    bot = null;
+                    _bot = null;
+                    _sysBot = null;
                 }
             }
             else
             {
-                bot.Disconnect();
+                _bot.Disconnect();
+                _sysBot = null;
 
-                foreach (inventorySlot btn in this.inventoryPanel.Controls.OfType<inventorySlot>())
-                {
-                    btn.reset();
-                }
-
-                this.connectBtn.Visible = true;
-                this.connectBtn.Enabled = true;
-                this.refreshBtn.Visible = false;
-                //this.playerSelectionPanel.Visible = false;
-                this.autoRefreshCheckBox.Visible = false;
-                this.playerSelectorInventory.Visible = false;
-                //this.saveBtn.Visible = false;
-                //this.loadBtn.Visible = false;
-                inventoryBtn_Click(sender, e);
-                this.otherBtn.Visible = false;
-                this.critterBtn.Visible = false;
-                this.villagerBtn.Visible = false;
-                this.ipBox.Visible = true;
-                this.pictureBox1.Visible = true;
-                this.configBtn.Visible = true;
-                cleanVillagerPage();
-
-                this.USBconnectBtn.Text = "USB";
-                this.USBconnectBtn.Tag = "connect";
-                this.Text = version;
+                DoDisconnectionCommon();
             }
         }
 

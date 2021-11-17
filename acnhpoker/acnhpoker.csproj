@@ -235,6 +235,7 @@
     </Compile>
     <Compile Include="Custom\CountDownTimer.cs" />
     <Compile Include="Debug\BoyerMoore.cs" />
+    <Compile Include="ISysBot.cs" />
     <Compile Include="Map\bulkSpawn.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -262,6 +263,7 @@
     <Compile Include="Map\Freezer.Designer.cs">
       <DependentUpon>Freezer.cs</DependentUpon>
     </Compile>
+    <Compile Include="SysBot.cs" />
     <Compile Include="Twitch\OrderDisplay.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -276,6 +278,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Twitch\VillagerOrder.cs" />
+    <Compile Include="UsbBot.cs" />
     <Compile Include="Villager\Friendship.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -29,11 +29,11 @@ namespace ACNHPoker
 
         private void PokeBtn_Click(object sender, EventArgs e)
         {
-            Utilities.pokeAddress(s, bot, debugAddress.Text, debugAmount.Text);
+            Utilities.pokeAddress(_sysBot, Convert.ToInt64(debugAddress.Text, 16), debugAmount.Text);
         }
         private void PeekBtn_Click(object sender, EventArgs e)
         {
-            byte[] AddressBank = Utilities.peekAddress(s, bot, Convert.ToInt32(debugAddress.Text, 16), 160);
+            byte[] AddressBank = Utilities.peekAddress(_sysBot, Convert.ToInt32(debugAddress.Text, 16), 160);
 
             byte[] firstBytes = new byte[4];
             byte[] secondBytes = new byte[4];
@@ -99,7 +99,7 @@ namespace ACNHPoker
             //string result2 = Encoding.ASCII.GetString(Utilities.transform(b2));
             //Debug.Print(result1 + "\n" + result2);
 
-            Utilities.OverwriteAll(s, bot, b1, b2, ref counter);
+            Utilities.OverwriteAll(_sysBot, b1, b2, ref counter);
 
             /*
             foreach (inventorySlot btn in this.inventoryPanel.Controls.OfType<inventorySlot>())
@@ -169,7 +169,7 @@ namespace ACNHPoker
             if (file.ShowDialog() != DialogResult.OK)
                 return;
 
-            byte[] save = Utilities.ReadByteArray8(s, Utilities.TerrainOffset, AllTerrainSize);
+            byte[] save = Utilities.ReadByteArray8(_sysBot, Utilities.TerrainOffset, AllTerrainSize);
 
             File.WriteAllBytes(file.FileName, save);
         }
@@ -195,7 +195,7 @@ namespace ACNHPoker
             if (file.ShowDialog() != DialogResult.OK)
                 return;
 
-            byte[] save = Utilities.ReadByteArray8(s, Utilities.AcreOffset, AcrePlusAdditionalParams);
+            byte[] save = Utilities.ReadByteArray8(_sysBot, Utilities.AcreOffset, AcrePlusAdditionalParams);
 
             File.WriteAllBytes(file.FileName, save);
         }
@@ -223,7 +223,7 @@ namespace ACNHPoker
 
             byte[] data = File.ReadAllBytes(file.FileName);
 
-            Utilities.SendByteArray8(s, Utilities.AcreOffset, data, AcrePlusAdditionalParams);
+            Utilities.SendByteArray8(_sysBot, Utilities.AcreOffset, data, AcrePlusAdditionalParams);
         }
 
         public static void GetAcreTileColor(byte acre, int x, int y)
@@ -339,7 +339,7 @@ namespace ACNHPoker
                 }
                 */
 
-                byte[] b = Utilities.peekAddress(s, bot, startAddress + i, 8000);
+                byte[] b = Utilities.peekAddress(_sysBot, startAddress + i, 8000);
                 //bank = Utilities.add(bank, b);
 
                 Debug.Print(Utilities.ByteToHexString(b));
@@ -359,7 +359,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 3; i++)
             {
-                byte[] Data = Utilities.peekAddress(s, bot, Utilities.player1SlotBase + (i * Utilities.playerOffset), (int)Utilities.playerOffset);
+                byte[] Data = Utilities.peekAddress(_sysBot, Utilities.player1SlotBase + (i * Utilities.playerOffset), (int)Utilities.playerOffset);
                 File.WriteAllBytes("dump" + i + ".bin", Data);
             }
         }
@@ -753,29 +753,29 @@ namespace ACNHPoker
             Buffer.BlockCopy(data, 0, b1, 0, 160);
             Buffer.BlockCopy(data, 160, b2, 0, 160);
 
-            Utilities.SendString(s, Utilities.Freeze(Utilities.GetItemSlotUIntAddress(1), b1));
-            Utilities.SendString(s, Utilities.Freeze(Utilities.GetItemSlotUIntAddress(21), b2));
+            Utilities.SendString(_sysBot, Utilities.Freeze(Utilities.GetItemSlotUIntAddress(1), b1));
+            Utilities.SendString(_sysBot, Utilities.Freeze(Utilities.GetItemSlotUIntAddress(21), b2));
         }
 
         private void button7_Click(object sender, EventArgs e)
         {
-            Utilities.SendString(s, Utilities.UnFreeze(Utilities.GetItemSlotUIntAddress(1)));
-            Utilities.SendString(s, Utilities.UnFreeze(Utilities.GetItemSlotUIntAddress(21)));
+            Utilities.SendString(_sysBot, Utilities.UnFreeze(Utilities.GetItemSlotUIntAddress(1)));
+            Utilities.SendString(_sysBot, Utilities.UnFreeze(Utilities.GetItemSlotUIntAddress(21)));
         }
 
         private void button8_Click(object sender, EventArgs e)
         {
-            Debug.Print(Utilities.GetFreezeCount(s).ToString());
+            Debug.Print(Utilities.GetFreezeCount(_sysBot).ToString());
         }
 
         private void button9_Click(object sender, EventArgs e)
         {
-            Utilities.SendString(s, Utilities.FreezeClear());
+            Utilities.SendString(_sysBot, Utilities.FreezeClear());
         }
 
         private void button10_Click(object sender, EventArgs e)
         {
-            myMessageBox.Show(Utilities.getVersion(s), "Sys-botbase Version");
+            myMessageBox.Show(Utilities.getVersion(_sysBot), "Sys-botbase Version");
         }
 
         private void button5_Click_1(object sender, EventArgs e)
@@ -784,7 +784,7 @@ namespace ACNHPoker
         }
         private void button14_Click(object sender, EventArgs e)
         {
-            dodoSetup = new dodo(s, this);
+            dodoSetup = new dodo(_sysBot, this);
             dodoSetup.Show();
             Thread testThread = new Thread(delegate () { testrestore(); });
             testThread.Start();

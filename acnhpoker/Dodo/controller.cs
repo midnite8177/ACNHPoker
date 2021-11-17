@@ -13,7 +13,7 @@ namespace ACNHPoker
 {
     class controller
     {
-        private static Socket s;
+        private static ISysBot _sysBot;
 
         private static readonly Encoding Encoder = Encoding.UTF8;
         private static byte[] Encode(string command, bool addrn = true) => Encoder.GetBytes(addrn ? command + "\r\n" : command);
@@ -71,204 +71,204 @@ namespace ACNHPoker
 
         private static string IslandName = "";
 
-        public controller(Socket S, string islandName)
+        public controller(ISysBot bot, string islandName)
         {
-            s = S;
+            _sysBot = bot;
             IslandName = islandName;
         }
 
         public static void clickA()
         {
-            Utilities.SendString(s, A());
+            Utilities.SendString(_sysBot, A());
         }
 
         public static void pressA()
         {
-            Utilities.SendString(s, pA());
+            Utilities.SendString(_sysBot, pA());
         }
 
         public static void releaseA()
         {
-            Utilities.SendString(s, rA());
+            Utilities.SendString(_sysBot, rA());
         }
 
         public static void clickB()
         {
-            Utilities.SendString(s, B());
+            Utilities.SendString(_sysBot, B());
         }
 
         public static void pressB()
         {
-            Utilities.SendString(s, pB());
+            Utilities.SendString(_sysBot, pB());
         }
 
         public static void releaseB()
         {
-            Utilities.SendString(s, rB());
+            Utilities.SendString(_sysBot, rB());
         }
 
         public static void clickX()
         {
-            Utilities.SendString(s, X());
+            Utilities.SendString(_sysBot, X());
         }
 
         public static void pressX()
         {
-            Utilities.SendString(s, pX());
+            Utilities.SendString(_sysBot, pX());
         }
 
         public static void releaseX()
         {
-            Utilities.SendString(s, rX());
+            Utilities.SendString(_sysBot, rX());
         }
 
         public static void clickY()
         {
-            Utilities.SendString(s, Y());
+            Utilities.SendString(_sysBot, Y());
         }
 
         public static void pressY()
         {
-            Utilities.SendString(s, pY());
+            Utilities.SendString(_sysBot, pY());
         }
 
         public static void releaseY()
         {
-            Utilities.SendString(s, rY());
+            Utilities.SendString(_sysBot, rY());
         }
 
         public static void clickL()
         {
-            Utilities.SendString(s, L());
+            Utilities.SendString(_sysBot, L());
         }
         public static void clickR()
         {
-            Utilities.SendString(s, R());
+            Utilities.SendString(_sysBot, R());
         }
         public static void clickZL()
         {
-            Utilities.SendString(s, ZL());
+            Utilities.SendString(_sysBot, ZL());
         }
         public static void clickZR()
         {
-            Utilities.SendString(s, ZR());
+            Utilities.SendString(_sysBot, ZR());
         }
 
         public static void clickPLUS()
         {
-            Utilities.SendString(s, PLUS());
+            Utilities.SendString(_sysBot, PLUS());
         }
         public static void clickMINUS()
         {
-            Utilities.SendString(s, MINUS());
+            Utilities.SendString(_sysBot, MINUS());
         }
 
         public static void clickHOME()
         {
-            Utilities.SendString(s, Home());
+            Utilities.SendString(_sysBot, Home());
         }
         public static void clickCAPTURE()
         {
-            Utilities.SendString(s, Capture());
+            Utilities.SendString(_sysBot, Capture());
         }
 
         public static void clickUp()
         {
-            Utilities.SendString(s, Up());
+            Utilities.SendString(_sysBot, Up());
         }
         public static void clickLeft()
         {
-            Utilities.SendString(s, Left());
+            Utilities.SendString(_sysBot, Left());
         }
         public static void clickDown()
         {
-            Utilities.SendString(s, Down());
+            Utilities.SendString(_sysBot, Down());
         }
         public static void clickRight()
         {
-            Utilities.SendString(s, Right());
+            Utilities.SendString(_sysBot, Right());
         }
 
         public static void clickRightStick()
         {
-            Utilities.SendString(s, RSTICK());
+            Utilities.SendString(_sysBot, RSTICK());
         }
         public static void clickLeftStick()
         {
-            Utilities.SendString(s, LSTICK());
+            Utilities.SendString(_sysBot, LSTICK());
         }
 
         public static void pressL()
         {
-            Utilities.SendString(s, pL());
+            Utilities.SendString(_sysBot, pL());
         }
         public static void releaseL()
         {
-            Utilities.SendString(s, rL());
+            Utilities.SendString(_sysBot, rL());
         }
 
         public static void LstickTopRight()
         {
-            Utilities.SendString(s, LstickTR());
+            Utilities.SendString(_sysBot, LstickTR());
         }
         public static void LstickTopLeft()
         {
-            Utilities.SendString(s, LstickTL());
+            Utilities.SendString(_sysBot, LstickTL());
         }
         public static void LstickBottomRight()
         {
-            Utilities.SendString(s, LstickBR());
+            Utilities.SendString(_sysBot, LstickBR());
         }
         public static void LstickBottomLeft()
         {
-            Utilities.SendString(s, LstickBL());
+            Utilities.SendString(_sysBot, LstickBL());
         }
 
         public static void LstickUp()
         {
-            Utilities.SendString(s, LstickU());
+            Utilities.SendString(_sysBot, LstickU());
         }
         public static void LstickLeft()
         {
-            Utilities.SendString(s, LstickL());
+            Utilities.SendString(_sysBot, LstickL());
         }
         public static void LstickDown()
         {
-            Utilities.SendString(s, LstickD());
+            Utilities.SendString(_sysBot, LstickD());
         }
         public static void LstickRight()
         {
-            Utilities.SendString(s, LstickR());
+            Utilities.SendString(_sysBot, LstickR());
         }
         public static void resetLeftStick()
         {
-            Utilities.SendString(s, resetLeft());
+            Utilities.SendString(_sysBot, resetLeft());
         }
 
         public static void RstickUp()
         {
-            Utilities.SendString(s, RstickU());
+            Utilities.SendString(_sysBot, RstickU());
         }
         public static void RstickLeft()
         {
-            Utilities.SendString(s, RstickL());
+            Utilities.SendString(_sysBot, RstickL());
         }
         public static void RstickDown()
         {
-            Utilities.SendString(s, RstickD());
+            Utilities.SendString(_sysBot, RstickD());
         }
         public static void RstickRight()
         {
-            Utilities.SendString(s, RstickR());
+            Utilities.SendString(_sysBot, RstickR());
         }
         public static void resetRightStick()
         {
-            Utilities.SendString(s, resetRight());
+            Utilities.SendString(_sysBot, resetRight());
         }
 
         public static void detachController()
         {
-            Utilities.SendString(s, detach());
+            Utilities.SendString(_sysBot, detach());
         }
 
         public static void EnterAirport()
@@ -331,7 +331,7 @@ namespace ACNHPoker
         public static void skip(int before = 900, int after = 500)
         {
             Thread.Sleep(before);
-            Utilities.SetTextSpeed(s, null, Utilities.isChinese(s));
+            Utilities.SetTextSpeed(_sysBot, Utilities.isChinese(_sysBot));
             Thread.Sleep(after);
         }
 
@@ -573,10 +573,10 @@ namespace ACNHPoker
             try
             {
                 //string dodo = "12345";
-                string dodo = Utilities.getDodo(s).Replace("\0", "");
+                string dodo = Utilities.getDodo(_sysBot,false).Replace("\0", "");
 
                 if (dodo == "") // Try again for Chinese
-                    dodo = Utilities.getDodo(s,true).Replace("\0", "");
+                    dodo = Utilities.getDodo(_sysBot,true).Replace("\0", "");
 
                 if (File.Exists(Utilities.dodoPath))
                 {

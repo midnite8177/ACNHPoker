@@ -42,13 +42,10 @@ namespace ACNHPoker
         {
             lock (villagerLock)
             {
-                if (bot == null)
-                    showVillagerWait(25000, "Acquiring villager data...");
-                else
-                    showVillagerWait(15000, "Acquiring villager data...");
-
-                if ((s == null || s.Connected == false) & bot == null)
+                if (_sysBot == null || _sysBot.Connected == false)
                     return;
+
+                showVillagerWait(55, "Acquiring villager data...");
 
                 blocker = true;
                 selectedVillagerButton = null;
@@ -57,7 +54,7 @@ namespace ACNHPoker
 
                 for (int i = 0; i < 10; i++)
                 {
-                    byte b = Utilities.GetHouseOwner(s, bot, i, ref counter);
+                    byte b = Utilities.GetHouseOwner(_sysBot, i, ref counter);
                     if (b == 0xDD)
                     {
                         hideVillagerWait();
@@ -73,20 +70,20 @@ namespace ACNHPoker
 
                 for (int i = 0; i < 10; i++)
                 {
-                    byte[] b = Utilities.GetVillager(s, bot, i, (int)(Utilities.VillagerMemoryTinySize), ref counter);
+                    byte[] b = Utilities.GetVillager(_sysBot, i, (int)(Utilities.VillagerMemoryTinySize), ref counter);
                     V[i] = new Villager(b, i)
                     {
                         HouseIndex = Utilities.FindHouseIndex(i, HouseList)
                     };
 
-                    byte f = Utilities.GetVillagerHouseFlag(s, bot, V[i].HouseIndex, 0x8, ref counter);
+                    byte f = Utilities.GetVillagerHouseFlag(_sysBot, V[i].HouseIndex, 0x8, ref counter);
                     V[i].MoveInFlag = Convert.ToInt32(f);
 
-                    byte[] move = Utilities.GetMoveout(s, bot, i, (int)0x33, ref counter);
+                    byte[] move = Utilities.GetMoveout(_sysBot, i, (int)0x33, ref counter);
                     V[i].AbandonedHouseFlag = Convert.ToInt32(move[0]);
                     V[i].InvitedFlag = Convert.ToInt32(move[0x14]);
                     V[i].ForceMoveOutFlag = Convert.ToInt32(move[move.Length - 1]);
-                    byte[] catchphrase = Utilities.GetCatchphrase(s, bot, i, ref counter);
+                    byte[] catchphrase = Utilities.GetCatchphrase(_sysBot, i, ref counter);
                     V[i].catchphrase = catchphrase;
 
                     villagerButton[i] = new Button();
@@ -189,7 +186,7 @@ namespace ACNHPoker
 
         private void RefreshVillagerBtn_Click(object sender, EventArgs e)
         {
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || _sysBot.Connected == false)
             {
                 return;
             }
@@ -361,7 +358,7 @@ namespace ACNHPoker
 
             blocker = true;
 
-            byte[] VillagerData = Utilities.GetVillager(s, bot, i, (int)Utilities.VillagerSize, ref counter);
+            byte[] VillagerData = Utilities.GetVillager(_sysBot, i, (int)Utilities.VillagerSize, ref counter);
             File.WriteAllBytes(file.FileName, VillagerData);
 
             byte[] CheckData = File.ReadAllBytes(file.FileName);
@@ -401,7 +398,7 @@ namespace ACNHPoker
             if (IndexValue.Text == "")
                 return;
             int i = Int16.Parse(IndexValue.Text);
-            byte[] move = Utilities.GetMoveout(s, bot, i, (int)(0x33), ref counter);
+            byte[] move = Utilities.GetMoveout(_sysBot, i, (int)(0x33), ref counter);
             File.WriteAllBytes(V[i].GetInternalName() + "MOVEOUT.bin", move);
         }
 
@@ -422,7 +419,7 @@ namespace ACNHPoker
                     firstWarning = true;
             }
 
-            Utilities.SetMoveout(s, bot, i);
+            Utilities.SetMoveout(_sysBot, i);
 
             V[i].AbandonedHouseFlag = 2;
             V[i].ForceMoveOutFlag = 1;
@@ -446,7 +443,7 @@ namespace ACNHPoker
                     firstWarning = true;
             }
 
-            Utilities.SetMoveout(s, bot, i, "2", "0");
+            Utilities.SetMoveout(_sysBot, i, "2", "0");
 
             V[i].AbandonedHouseFlag = 2;
             V[i].ForceMoveOutFlag = 0;
@@ -458,7 +455,7 @@ namespace ACNHPoker
             if (IndexValue.Text == "")
                 return;
             int i = Int16.Parse(IndexValue.Text);
-            Utilities.SetMoveout(s, bot, i, "0", "0");
+            Utilities.SetMoveout(_sysBot, i, "0", "0");
 
             V[i].AbandonedHouseFlag = 0;
             V[i].ForceMoveOutFlag = 0;
@@ -470,7 +467,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 10; i++)
             {
-                Utilities.SetMoveout(s, bot, i);
+                Utilities.SetMoveout(_sysBot, i);
 
                 V[i].AbandonedHouseFlag = 2;
                 V[i].ForceMoveOutFlag = 1;
@@ -486,7 +483,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 10; i++)
             {
-                Utilities.SetMoveout(s, bot, i, "2", "0");
+                Utilities.SetMoveout(_sysBot, i, "2", "0");
 
                 V[i].AbandonedHouseFlag = 2;
                 V[i].ForceMoveOutFlag = 0;
@@ -502,7 +499,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 10; i++)
             {
-                Utilities.SetMoveout(s, bot, i, "0", "0");
+                Utilities.SetMoveout(_sysBot, i, "0", "0");
 
                 V[i].AbandonedHouseFlag = 0;
                 V[i].ForceMoveOutFlag = 0;
@@ -537,7 +534,7 @@ namespace ACNHPoker
             else
                 img = new Bitmap(Properties.Resources.Leaf, new Size(128, 128));
 
-            friendship = new Friendship(this, i, s, bot, img, V[i].GetRealName(), sound);
+            friendship = new Friendship(this, i, _sysBot, img, V[i].GetRealName(), sound);
             friendship.Show();
             friendship.Location = new System.Drawing.Point(this.Location.X + 30, this.Location.Y + 30);
         }
@@ -556,7 +553,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 10; i++)
             {
-                byte[] house = Utilities.GetHouse(s, bot, i, ref counter);
+                byte[] house = Utilities.GetHouse(_sysBot, i, ref counter);
                 File.WriteAllBytes("House" + i + ".nhvh2", house);
             }
         }
@@ -565,7 +562,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 10; i++)
             {
-                byte[] house = Utilities.GetHouse(s, bot, i, ref counter, Utilities.VillagerHouseBufferDiff);
+                byte[] house = Utilities.GetHouse(_sysBot, i, ref counter, Utilities.VillagerHouseBufferDiff);
                 File.WriteAllBytes("HouseBuffer" + i + ".nhvh2", house);
             }
         }
@@ -624,7 +621,7 @@ namespace ACNHPoker
         {
             showVillagerWait((int)Utilities.VillagerHouseSize, "Dumping " + V[i].GetRealName() + "'s House ...");
 
-            byte[] house = Utilities.GetHouse(s, bot, j, ref counter);
+            byte[] house = Utilities.GetHouse(_sysBot, j, ref counter);
             File.WriteAllBytes(file.FileName, house);
             if (sound)
                 System.Media.SystemSounds.Asterisk.Play();
@@ -634,7 +631,7 @@ namespace ACNHPoker
 
         private void ReadMysVillagerBtn_Click(object sender, EventArgs e)
         {
-            byte[] IName = Utilities.GetMysVillagerName(s, bot);
+            byte[] IName = Utilities.GetMysVillagerName(_sysBot);
             string StrName = Encoding.ASCII.GetString(Utilities.ByteTrim(IName));
             string RealName = Utilities.GetVillagerRealName(StrName);
 
@@ -673,7 +670,7 @@ namespace ACNHPoker
             byte[] species = new byte[1];
             species[0] = Utilities.CheckSpecies[(lines[lines.Length - 1]).Substring(0, 3)];
 
-            Utilities.SetMysVillager(s, bot, IName, species, ref counter);
+            Utilities.SetMysVillager(_sysBot, IName, species, ref counter);
 
             Image img;
             string path = Utilities.GetVillagerImage(lines[lines.Length - 1]);
@@ -702,7 +699,7 @@ namespace ACNHPoker
                 phrase[j] = temp[j];
             }
 
-            Utilities.SetCatchphrase(s, bot, i, phrase);
+            Utilities.SetCatchphrase(_sysBot, i, phrase);
 
             V[i].catchphrase = phrase;
             RefreshVillagerUI(false);
@@ -715,7 +712,7 @@ namespace ACNHPoker
             int i = Int16.Parse(IndexValue.Text);
             byte[] phrase = new byte[44];
 
-            Utilities.SetCatchphrase(s, bot, i, phrase);
+            Utilities.SetCatchphrase(_sysBot, i, phrase);
 
             V[i].catchphrase = phrase;
             RefreshVillagerUI(false);
@@ -731,10 +728,7 @@ namespace ACNHPoker
                 WaitMessagebox.SelectionAlignment = HorizontalAlignment.Center;
                 WaitMessagebox.Text = msg;
                 counter = 0;
-                if (bot == null)
-                    VillagerProgressBar.Maximum = size / 500 + 5;
-                else
-                    VillagerProgressBar.Maximum = size / 300 + 5;
+                VillagerProgressBar.Maximum = size;
                 Debug.Print("Max : " + VillagerProgressBar.Maximum.ToString());
                 VillagerProgressBar.Value = counter;
                 PleaseWaitPanel.Visible = true;
@@ -839,7 +833,7 @@ namespace ACNHPoker
 
             V[i].LoadData(modifiedVillager);
 
-            //byte[] move = Utilities.GetMoveout(s, bot, i, (int)0x33, ref counter);
+            //byte[] move = Utilities.GetMoveout(_sysBot, i, (int)0x33, ref counter);
             V[i].AbandonedHouseFlag = Convert.ToInt32(villager[Utilities.VillagerMoveoutOffset]);
             V[i].ForceMoveOutFlag = Convert.ToInt32(villager[Utilities.VillagerForceMoveoutOffset]);
 
@@ -848,7 +842,7 @@ namespace ACNHPoker
             Buffer.BlockCopy(villager, (int)Utilities.VillagerCatchphraseOffset, phrase, 0x0, 44);
             V[i].catchphrase = phrase;
 
-            Utilities.LoadVillager(s, bot, i, modifiedVillager, ref counter);
+            Utilities.LoadVillager(_sysBot, i, modifiedVillager, ref counter);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -931,7 +925,7 @@ namespace ACNHPoker
             V[i].HouseIndex = j;
             HouseList[j] = i;
 
-            Utilities.LoadHouse(s, bot, j, modifiedHouse, ref counter);
+            Utilities.LoadHouse(_sysBot, j, modifiedHouse, ref counter);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -1069,8 +1063,8 @@ namespace ACNHPoker
             V[i].HouseIndex = j;
             HouseList[j] = i;
 
-            Utilities.LoadVillager(s, bot, i, modifiedVillager, ref counter);
-            Utilities.LoadHouse(s, bot, j, modifiedHouse, ref counter);
+            Utilities.LoadVillager(_sysBot, i, modifiedVillager, ref counter);
+            Utilities.LoadHouse(_sysBot, j, modifiedHouse, ref counter);
 
             this.Invoke((MethodInvoker)delegate
             {
@@ -1088,7 +1082,7 @@ namespace ACNHPoker
             {
                 try
                 {
-                    Utilities.pokeAddress(s, bot, Utilities.TextSpeedAddress.ToString("X"), "3");
+                    Utilities.pokeAddress(_sysBot, Utilities.TextSpeedAddress, "3");
                 }
                 catch
                 {

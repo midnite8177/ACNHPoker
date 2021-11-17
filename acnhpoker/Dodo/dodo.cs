@@ -13,7 +13,7 @@ namespace ACNHPoker
 {
     public partial class dodo : Form
     {
-        private static Socket s;
+        private ISysBot _sysBot;
         private Form mainForm;
         public Boolean dodoSetupDone = false;
         private Boolean idleEmote = false;
@@ -70,11 +70,11 @@ namespace ACNHPoker
             Null
         }
 
-        public dodo(Socket S, Form main, bool standaloneMode = false)
+        public dodo(ISysBot sysBot, Form main, bool standaloneMode = false)
         {
             InitializeComponent();
             mainForm = main;
-            s = S;
+            _sysBot = sysBot;
 
             if (teleport.allAnchorValid())
             {
@@ -666,7 +666,7 @@ namespace ACNHPoker
                     {
                         if (wasLoading)
                         {
-                            if (Utilities.hasItemInFirstSlot(s))
+                            if (Utilities.hasItemInFirstSlot(_sysBot))
                             {
                                 if (lastOrderIsRecipe)
                                     controller.dropRecipe();
@@ -929,7 +929,7 @@ namespace ACNHPoker
 
             string flag2 = "00";
 
-            Utilities.SpawnItem(s, null, 0, flag1 + flag2 + CurrentOrder.id, Utilities.precedingZeros(CurrentOrder.count, 8));
+            Utilities.SpawnItem(_sysBot, 0, flag1 + flag2 + CurrentOrder.id, Utilities.precedingZeros(CurrentOrder.count, 8));
             //Thread.Sleep(500);
             if (CurrentOrder.id == "16A2")
             {
@@ -960,24 +960,24 @@ namespace ACNHPoker
 
         private async Task InjectVillager(VillagerOrder CurrentOrder)
         {
-            List<string> VillagerList = Utilities.GetVillagerList(s);
+            List<string> VillagerList = Utilities.GetVillagerList(_sysBot);
 
             if (VillagerList.Contains(CurrentOrder.InternalName))
             {
                 int i = VillagerList.IndexOf(CurrentOrder.InternalName);
 
-                Utilities.SetMoveout(s, null, i, "2", "0");
+                Utilities.SetMoveout(_sysBot, i, "2", "0");
 
                 await MyTwitchBot.SendMessage($"{CurrentOrder.owner}, \"{CurrentOrder.RealName}\" is already waiting for you on the island.");
 
                 VillagerOrderList.RemoveAt(0);
 
-                MapRegenerator.updateVillager(s, i);
+                MapRegenerator.updateVillager(_sysBot, i);
             }
             else
             {
                 int houseIndex = 0;
-                int villagerIndex = Convert.ToInt32(Utilities.GetHouseOwner(s, null, houseIndex));
+                int villagerIndex = Convert.ToInt32(Utilities.GetHouseOwner(_sysBot, houseIndex));
 
                 string IVpath = Utilities.villagerPath + CurrentOrder.InternalName + ".nhv2";
                 string RVpath = Utilities.villagerPath + CurrentOrder.RealName + ".nhv2";
@@ -1019,14 +1019,14 @@ namespace ACNHPoker
                 byte h = (Byte)villagerIndex;
                 modifiedHouse[Utilities.VillagerHouseOwnerOffset] = h;
 
-                await Utilities.loadBoth(s, villagerIndex, villagerData, houseIndex, houseData);
-                await Utilities.SetMoveout(s, villagerIndex, "2", "0");
+                await Utilities.loadBoth(_sysBot, villagerIndex, villagerData, houseIndex, houseData);
+                await Utilities.SetMoveoutAsync(_sysBot, villagerIndex, "2", "0");
 
                 await MyTwitchBot.SendMessage($"{CurrentOrder.owner}, \"{CurrentOrder.RealName}\" is now waiting for you on the island.");
 
                 VillagerOrderList.RemoveAt(0);
 
-                MapRegenerator.updateVillager(s, villagerIndex);
+                MapRegenerator.updateVillager(_sysBot, villagerIndex);
                 WriteLog($"Villager \"{CurrentOrder.RealName}\" loaded!", true);
             }
 
@@ -1379,7 +1379,7 @@ namespace ACNHPoker
             {
                 if (i == 0)
                     continue;
-                namelist[i] = Utilities.GetVisitorName(s, null, i);
+                namelist[i] = Utilities.GetVisitorName(_sysBot, i);
                 if (!namelist[i].Equals(String.Empty))
                     num++;
             }
@@ -1495,7 +1495,7 @@ namespace ACNHPoker
                         {
                             if (wasLoading)
                             {
-                                if (Utilities.hasItemInFirstSlot(s))
+                                if (Utilities.hasItemInFirstSlot(_sysBot))
                                 {
                                     if (lastOrderIsRecipe)
                                         controller.dropRecipe();
@@ -1542,7 +1542,7 @@ namespace ACNHPoker
 
                 if (wasLoading)
                 {
-                    MapRegenerator.prepareVillager(s);
+                    MapRegenerator.prepareVillager(_sysBot);
                     GetVisitorList();
                 }
                 idleNum++;
@@ -1561,7 +1561,7 @@ namespace ACNHPoker
                 {
                     if (i == 0)
                         continue;
-                    namelist[i] = Utilities.GetVisitorName(s, null, i);
+                    namelist[i] = Utilities.GetVisitorName(_sysBot, i);
                     if (namelist[i].Equals(String.Empty))
                         sw.WriteLine("[Empty]");
                     else
@@ -1991,7 +1991,7 @@ namespace ACNHPoker
 
         private void clearInvBtn_Click(object sender, EventArgs e)
         {
-            Utilities.DeleteSlot(s,null, 0);
+            Utilities.DeleteSlot(_sysBot, 0);
             WriteLog("First inventory slot cleared!", true);
             WriteLog("please remember to reset your cursor to the first inventory slot for the drop bot to function properly!", true);
         }

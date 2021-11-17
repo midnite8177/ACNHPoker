@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -284,18 +283,6 @@ namespace ACNHPoker
             return (value < min) ? min : (value > max) ? max : value;
         }
 
-        public static string GetItemSlotAddress(int slot)
-        {
-            if (slot <= 20)
-            {
-                return "0x" + (ItemSlotBase + ((Clamp(slot, 1, 20) - 1) * 0x8)).ToString("X");
-            }
-            else
-            {
-                return "0x" + (ItemSlot21Base + ((Clamp(slot, 21, 40) - 21) * 0x8)).ToString("X");
-            }
-        }
-
         public static uint GetItemSlotUIntAddress(int slot)
         {
             if (slot <= 20)
@@ -305,18 +292,6 @@ namespace ACNHPoker
             else
             {
                 return (uint)(ItemSlot21Base + ((Clamp(slot, 21, 40) - 21) * 0x8));
-            }
-        }
-
-        public static string GetItemCountAddress(int slot)
-        {
-            if (slot <= 20)
-            {
-                return "0x" + (ItemSlotBase + ((Clamp(slot, 1, 20) - 1) * 0x8) + 0x4).ToString("X");
-            }
-            else
-            {
-                return "0x" + (ItemSlot21Base + ((Clamp(slot, 21, 40) - 21) * 0x8) + 0x4).ToString("X");
             }
         }
 
@@ -332,15 +307,15 @@ namespace ACNHPoker
             }
         }
 
-        public static string GetItemFlag1Address(int slot)
+        public static long GetItemFlag1Address(int slot)
         {
             if (slot <= 20)
             {
-                return (0x3 + ItemSlotBase + ((Clamp(slot, 1, 20) - 1) * 0x8)).ToString("X");
+                return (0x3 + ItemSlotBase + ((Clamp(slot, 1, 20) - 1) * 0x8));
             }
             else
             {
-                return (0x3 + ItemSlot21Base + ((Clamp(slot, 21, 40) - 21) * 0x8)).ToString("X");
+                return (0x3 + ItemSlot21Base + ((Clamp(slot, 21, 40) - 21) * 0x8));
             }
         }
 
@@ -392,84 +367,43 @@ namespace ACNHPoker
             return newArray;
         }
 
-        public static byte[] GetInventoryBank(Socket socket, USBBot bot, int slot)
+        public static byte[] GetInventoryBank(ISysBot bot, int slot)
         {
             lock (botLock)
             {
-                if (bot == null)
+                uint addr = GetItemSlotUIntAddress(slot);
+                Debug.Print($"[{bot.Id}] Peek : Inventory " + addr.ToString("X") + " " + slot);
+
+                byte[] b = bot.ReadByteArray(addr, 160);
+
+                if (b == null)
                 {
-                    Debug.Print("[Sys] Peek : Inventory " + GetItemSlotUIntAddress(slot).ToString("X") + " " + slot);
-
-                    byte[] b = ReadByteArray(socket, GetItemSlotUIntAddress(slot), 160);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n GetItemSlotUIntAddress(" + slot + ")");
-                    }
-
-                    return b;
+                    MessageBox.Show("Wait something is wrong here!? \n\n GetItemSlotUIntAddress(" + slot + ")");
                 }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Inventory " + GetItemSlotUIntAddress(slot).ToString("X") + " " + slot);
 
-                    byte[] b = bot.ReadBytes(GetItemSlotUIntAddress(slot), 160);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n GetItemSlotUIntAddress(" + slot + ")");
-                    }
-
-                    return b;
-                }
+                return b;
             }
         }
 
-        public static void SpawnItem(Socket socket, USBBot bot, int slot, String value, String amount)
+        public static void SpawnItem(ISysBot bot, int slot, String value, String amount)
         {
             lock (botLock)
             {
-                if (bot == null)
-                {
-                    string msg = String.Format("poke {0:X8} 0x{1}\r\n", GetItemSlotAddress(slot), flip(precedingZeros(value, 8)));
-                    SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                    string countMsg = String.Format("poke {0:X8} 0x{1}\r\n", GetItemCountAddress(slot), flip(precedingZeros(amount, 8)));
-                    SendString(socket, Encoding.UTF8.GetBytes(countMsg));
-                }
-                else
-                {
-                    bot.WriteBytes(stringToByte(flip(precedingZeros(value, 8))), GetItemSlotUIntAddress(slot));
-
-                    bot.WriteBytes(stringToByte(flip(precedingZeros(amount, 8))), GetItemCountUIntAddress(slot));
-                }
-
+                bot.WriteByteArray(value, GetItemSlotUIntAddress(slot), 8);
+                bot.WriteByteArray(amount, GetItemCountUIntAddress(slot), 8);
                 //Debug.Print("Slot : " + slot + " | ID : " + value + " | Amount : " + amount);
                 //Debug.Print("Spawn Item : poke " + GetItemSlotAddress(slot) + " 0x" + flip(precedingZeros(value, 8)) + " 0x" + flip(precedingZeros(amount, 8)));
             }
         }
 
-        public static bool SpawnRecipe(Socket socket, USBBot bot, int slot, String value, String recipeValue)
+        public static bool SpawnRecipe(ISysBot bot, int slot, String value, String recipeValue)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        string msg = String.Format("poke {0:X8} 0x{1}\r\n", GetItemSlotAddress(slot), flip(precedingZeros(value, 8)));
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        string countMsg = String.Format("poke {0:X8} 0x{1}\r\n", GetItemCountAddress(slot), flip(precedingZeros(recipeValue, 8)));
-                        SendString(socket, Encoding.UTF8.GetBytes(countMsg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(stringToByte(flip(precedingZeros(value, 8))), GetItemSlotUIntAddress(slot));
-
-                        bot.WriteBytes(stringToByte(flip(precedingZeros(recipeValue, 8))), GetItemCountUIntAddress(slot));
-                    }
-
+                    bot.WriteByteArray(value, GetItemSlotUIntAddress(slot), 8);
+                    bot.WriteByteArray(recipeValue, GetItemCountUIntAddress(slot), 8);
                     //Debug.Print("Slot : " + slot + " | ID : " + value + " | RecipeValue : " + recipeValue);
                     //Debug.Print("Spawn recipe : poke " + GetItemSlotAddress(slot) + " 0x" + flip(precedingZeros(value, 8)) + " 0x" + flip(precedingZeros(recipeValue, 8)));
                     return true;
@@ -483,27 +417,14 @@ namespace ACNHPoker
             }
         }
 
-        public static bool SpawnFlower(Socket socket, USBBot bot, int slot, String value, String flowerValue)
+        public static bool SpawnFlower(ISysBot bot, int slot, String value, String flowerValue)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        string msg = String.Format("poke {0:X8} 0x{1}\r\n", GetItemSlotAddress(slot), flip(precedingZeros(value, 8)));
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        string countMsg = String.Format("poke {0:X8} 0x{1}\r\n", GetItemCountAddress(slot), flip(precedingZeros(flowerValue, 8)));
-                        SendString(socket, Encoding.UTF8.GetBytes(countMsg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(stringToByte(flip(precedingZeros(value, 8))), GetItemSlotUIntAddress(slot));
-
-                        bot.WriteBytes(stringToByte(flip(precedingZeros(flowerValue, 8))), GetItemCountUIntAddress(slot));
-                    }
-
+                    bot.WriteByteArray(value, GetItemSlotUIntAddress(slot), 8);
+                    bot.WriteByteArray(flowerValue, GetItemCountUIntAddress(slot), 8);
                     //Debug.Print("Slot : " + slot + " | ID : " + value + " | FlowerValue : " + flowerValue);
                     //Debug.Print("Spawn Flower : poke " + GetItemSlotAddress(slot) + " 0x" + flip(precedingZeros(value, 8)) + " 0x" + flip(precedingZeros(flowerValue, 8)));
                     return true;
@@ -558,101 +479,41 @@ namespace ACNHPoker
                 return value.Substring(value.Length - 4, 4);
         }
 
-        public static void DeleteSlot(Socket s, USBBot bot, int slot)
+        public static void DeleteSlot(ISysBot bot, int slot)
         {
-            SpawnItem(s, bot, slot, "FFFE", "0");
+            SpawnItem(bot, slot, "FFFE", "0");
         }
 
-        public static void OverwriteAll(Socket socket, USBBot bot, byte[] buffer1, byte[] buffer2, ref int counter)
+        public static void OverwriteAll(ISysBot bot, byte[] buffer1, byte[] buffer2, ref int counter)
         {
             lock (botLock)
             {
-                if (bot == null)
-                {
-                    SendByteArray(socket, GetItemSlotUIntAddress(1), buffer1, 160, ref counter);
-                    SendByteArray(socket, GetItemSlotUIntAddress(21), buffer2, 160, ref counter);
-                }
-                else
-                {
-                    bot.WriteBytes(buffer1, GetItemSlotUIntAddress(1));
-                    bot.WriteBytes(buffer2, GetItemSlotUIntAddress(21));
-                }
+                bot.SendByteArrayWithCounter(buffer1, GetItemSlotUIntAddress(1), ref counter);
+                bot.SendByteArrayWithCounter(buffer2, GetItemSlotUIntAddress(21), ref counter);
             }
         }
 
-        public static void OverwriteAll(Socket socket, USBBot bot, byte[] buffer1, byte[] buffer2)
+        public static UInt32[] GetTurnipPrices(ISysBot bot)
         {
             lock (botLock)
             {
-                if (bot == null)
-                {
-                    SendByteArray(socket, GetItemSlotUIntAddress(1), buffer1, 160);
-                    SendByteArray(socket, GetItemSlotUIntAddress(21), buffer2, 160);
-                }
-                else
-                {
-                    bot.WriteBytes(buffer1, GetItemSlotUIntAddress(1));
-                    bot.WriteBytes(buffer2, GetItemSlotUIntAddress(21));
-                }
-            }
-        }
-
-        public static UInt64[] GetTurnipPrices(Socket socket, USBBot bot)
-        {
-            lock (botLock)
-            {
-                UInt64[] result = new UInt64[13];
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : TurnipPurchasePrice " + TurnipPurchasePriceAddr.ToString("X"));
-
-                    ReadUInt64Array(socket, TurnipPurchasePriceAddr, result, 4, 12);
-
-                    Debug.Print("[Sys] Peek : TurnipSellPriceAddr " + TurnipSellPriceAddr.ToString("X"));
-
-                    ReadUInt64Array(socket, TurnipSellPriceAddr, result, 4 * 12, 0);
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : TurnipPrice " + TurnipPurchasePriceAddr.ToString("X") + " " + TurnipSellPriceAddr.ToString("X"));
-
-                    byte[] b = bot.ReadBytes(TurnipPurchasePriceAddr, 57);
-
-                    result[12] = b[0];
-
-                    for (int i = 0; i < 12; i++)
-                    {
-                        result[i] = b[12 + (i * 4)];
-                    }
-                }
+                UInt32[] result = new UInt32[13];
+                Debug.Print($"[{bot.Id}] Peek : TurnipPurchasePrice {TurnipPurchasePriceAddr.ToString("X")}");
+                Debug.Print($"[{bot.Id}] Peek : TurnipSellPriceAddr {TurnipSellPriceAddr.ToString("X")}");
+                bot.ReadUInt32Array(TurnipPurchasePriceAddr, result, 12, 1);
+                bot.ReadUInt32Array(TurnipSellPriceAddr, result, 0, 12);
                 return result;
             }
         }
 
-        public static bool ChangeTurnipPrices(Socket socket, USBBot bot, UInt32[] prices)
+        public static void ChangeTurnipPrices(ISysBot bot, UInt32[] prices)
         {
             lock (botLock)
             {
-                if (bot == null)
-                {
-                    SendUInt32Array(socket, TurnipPurchasePriceAddr, prices, 4, 12);
-                    SendUInt32Array(socket, TurnipPurchasePriceAddr + TurnipBuffer, prices, 4, 12);
-                    SendUInt32Array(socket, TurnipSellPriceAddr, prices, 4 * 12);
-                    SendUInt32Array(socket, TurnipSellPriceAddr + TurnipBuffer, prices, 4 * 12);
-                }
-                else
-                {
-                    byte[] BuyPrice = stringToByte(flip(precedingZeros(prices[12].ToString("X"), 8)));
-                    bot.WriteBytes(BuyPrice, TurnipPurchasePriceAddr);
-                    bot.WriteBytes(BuyPrice, TurnipPurchasePriceAddr + TurnipBuffer);
-
-                    for (int i = 0; i < 12; i++)
-                    {
-                        bot.WriteBytes(stringToByte(flip(precedingZeros(prices[i].ToString("X"), 8))), (uint)(TurnipSellPriceAddr + (4 * i)));
-                        bot.WriteBytes(stringToByte(flip(precedingZeros(prices[i].ToString("X"), 8))), (uint)(TurnipSellPriceAddr + (4 * i) + TurnipBuffer));
-                    }
-                }
-                return false;
+                bot.WriteUInt32Array(TurnipPurchasePriceAddr, prices, 12, 1);
+                bot.WriteUInt32Array(TurnipPurchasePriceAddr + TurnipBuffer, prices, 12, 1);
+                bot.WriteUInt32Array(TurnipSellPriceAddr, prices, 0, 12);
+                bot.WriteUInt32Array(TurnipSellPriceAddr + TurnipBuffer, prices, 0, 12);
             }
         }
 
@@ -790,46 +651,22 @@ namespace ACNHPoker
             }
         }
 
-        public static byte[] peekAddress(Socket socket, USBBot bot, long address, int size)
+        public static byte[] peekAddress(ISysBot sysBot, long address, int size)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
+                    Debug.Print($"[{sysBot.Id}] Peek : Address " + address.ToString("X") + " " + size);
+
+                    byte[] b = sysBot.ReadByteArray(address, size);
+
+                    if (b == null)
                     {
-                        /*
-                        string msg = String.Format("peek {0:X8} {1}\r\n", address, size);
-                        Debug.Print("Peek : " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        byte[] b = new byte[330];
-                        socket.Receive(b);
-                        */
-                        Debug.Print("[Sys] Peek : Address " + address.ToString("X") + " " + size);
-
-                        byte[] b = ReadByteArray(socket, address, size);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n peek " + address.ToString("X") + " " + size);
-                        }
-
-                        return b;
+                        MessageBox.Show("Wait something is wrong here!? \n\n peek " + address.ToString("X") + " " + size);
                     }
-                    else
-                    {
-                        Debug.Print("[Usb] Peek : Address " + address.ToString("X") + " " + size);
 
-                        byte[] b = bot.ReadBytes((uint)address, size);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n peek " + address);
-                        }
-
-                        return b;
-                    }
+                    return b;
                 }
                 catch
                 {
@@ -839,22 +676,13 @@ namespace ACNHPoker
             }
         }
 
-        public static void pokeAddress(Socket socket, USBBot bot, string address, string value)
+        public static void pokeAddress(ISysBot bot, long address, string value)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        string msg = String.Format("poke 0x{0:X8} {1}\r\n", address, "0x" + value);
-                        Debug.Print("Poke : " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(stringToByte(value), Convert.ToUInt32(address, 16));
-                    }
+                    bot.SendByteArray(stringToByte(value), address);
                 }
                 catch
                 {
@@ -863,22 +691,13 @@ namespace ACNHPoker
             }
         }
 
-        public static void pokeMainAddress(Socket socket, USBBot bot, string address, string value)
+        public static void pokeMainAddress(ISysBot bot, long address, string value)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        string msg = String.Format("pokeMain 0x{0:X8} 0x{1}\r\n", address, flip(value));
-                        Debug.Print("PokeMain : " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(stringToByte(value), Convert.ToUInt32(address, 16));
-                    }
+                    bot.SendByteArrayMain(stringToByte(value), address);
                 }
                 catch
                 {
@@ -887,462 +706,360 @@ namespace ACNHPoker
             }
         }
 
-        public static byte[] peekMainAddress(Socket socket, string address, int size)
+        public static byte[] peekMainAddress(ISysBot sysBot, long address, int size)
         {
             lock (botLock)
             {
-                byte[] result = new byte[size];
+                //Debug.Print($"[{sysBot.Id}] PeekMain : Address " + address.ToString("X") + " " + size);
 
-                string msg = String.Format("peekMain 0x{0:X8} 0x{1}\r\n", address, size);
-                //Debug.Print("PeekMain : " + msg);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                byte[] b = new byte[size * 2 + 64];
-                int first_rec = ReceiveString(socket, b);
-                string buffer = Encoding.ASCII.GetString(b, 0, size * 2);
-
-                if (buffer == null)
-                {
-                    return null;
-                }
-                for (int i = 0; i < size; i++)
-                {
-                    result[i] = Convert.ToByte(buffer.Substring(i * 2, 2), 16);
-                }
-
-                return result;
+                byte[] b = sysBot.ReadByteArrayMain(address, size);
+                return b;
             }
         }
 
-        public static byte[] peekAbsoluteAddress(Socket socket, string address, int size)
+        public static byte[] peekAbsoluteAddress(ISysBot sysBot, long address, int size)
         {
             lock (botLock)
             {
-                byte[] result = new byte[size];
+                //Debug.Print($"[{sysBot.Id}] PeekAbsolute : Address " + address.ToString("X") + " " + size);
 
-                string msg = String.Format("peekAbsolute 0x{0:X8} {1}\r\n", address, size);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-                byte[] b = new byte[size * 2 + 64];
-                int first_rec = ReceiveString(socket, b);
-                string buffer = Encoding.ASCII.GetString(b, 0, size * 2);
-
-                if (buffer == null)
-                {
-                    return null;
-                }
-                for (int i = 0; i < size; i++)
-                {
-                    result[i] = Convert.ToByte(buffer.Substring(i * 2, 2), 16);
-                }
-
-                return result;
+                byte[] b = sysBot.ReadByteArrayAbsolute(address, size);
+                return b;
             }
         }
 
-        public static void pokeAbsoluteAddress(Socket socket, string address, string value)
+        public static void pokeAbsoluteAddress(ISysBot bot, long address, string value)
         {
             lock (botLock)
             {
-                string msg = String.Format("pokeAbsolute 0x{0:X8} 0x{1}\r\n", address, value);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
+                bot.SendByteArrayAbsolute(stringToByte(value), address);
             }
         }
 
-        public static void setStamina(Socket socket, USBBot bot, string value)
+        public static byte[] ReadByteArray(ISysBot bot, long address, int length)
         {
-            pokeAddress(socket, bot, staminaAddress.ToString("X"), value);
-        }
-
-        public static void setFlag1(Socket socket, USBBot bot, int slot, string flag)
-        {
-            pokeAddress(socket, bot, GetItemFlag1Address(slot), flag);
-        }
-
-        public static byte[] ReadByteArray(Socket socket, long initAddr, int size)
-        {
-            //try
-            //{
-            // Read in small chunks
-            byte[] result = new byte[size];
-            const int maxBytesToReceive = 1536;
-            int received = 0;
-            int bytesToReceive;
-            while (received < size)
+            lock (botLock)
             {
-                bytesToReceive = (size - received > maxBytesToReceive) ? maxBytesToReceive : size - received;
-                string bufferRepr = ReadToIntermediateString(socket, initAddr + received, bytesToReceive);
-                if (bufferRepr == null)
+                return bot.ReadByteArray(address, length);
+            }
+        }
+
+        public static byte[] ReadByteArray(ISysBot bot, long address, int length, ref int counter)
+        {
+            lock (botLock)
+            {
+                return bot.ReadByteArray(address, length, ref counter);
+            }
+        }
+
+
+        public static void setStamina(ISysBot bot, string value)
+        {
+            pokeAddress(bot, staminaAddress, value);
+        }
+
+        public static void setFlag1(ISysBot bot, int slot, string flag)
+        {
+            pokeAddress(bot, GetItemFlag1Address(slot), flag);
+        }
+
+        public static void SendString(ISysBot bot, byte[] buffer, int offset = 0, int size = 0, int timeout = 100)
+        {
+            lock (botLock)
+            {
+                bot.SendString(buffer, offset, size, timeout);
+            }
+        }
+
+        public static byte[] GetTownID(ISysBot sysBot)
+        {
+            lock (botLock)
+            {
+                Debug.Print($"[{sysBot.Id}] Peek : TownID " + TownNameddress.ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(TownNameddress, 0x1C);
+
+                if (b == null)
                 {
+                    MessageBox.Show("Wait something is wrong here!? \n\n TownNameddress");
+                }
+                return b;
+            }
+        }
+
+        public static byte[] GetWeatherSeed(ISysBot sysBot)
+        {
+            lock (botLock)
+            {
+                Debug.Print($"[{sysBot.Id}] Peek : WeatherSeed " + weatherSeed.ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(weatherSeed, 0x4);
+
+                if (b == null)
+                {
+                    MessageBox.Show("Wait something is wrong here!? \n\n WeatherSeed");
+                }
+                return b;
+            }
+        }
+
+        public static byte[] getReaction(ISysBot sysBot, int player)
+        {
+            lock (botLock)
+            {
+                try
+                {
+                    Debug.Print($"[{sysBot.Id}] Peek : Reaction " + (playerReactionAddress + (player * playerOffset)).ToString("X"));
+
+                    byte[] b = sysBot.ReadByteArray((uint)(playerReactionAddress + (player * playerOffset)), 8);
+
+                    if (b == null)
+                    {
+                        MessageBox.Show("Wait something is wrong here!? \n\n Reaction ");
+                    }
+
+                    return b;
+                }
+                catch
+                {
+                    MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
                     return null;
                 }
-                for (int i = 0; i < bytesToReceive; i++)
-                {
-                    result[received + i] = Convert.ToByte(bufferRepr.Substring(i * 2, 2), 16);
-                }
-                received += bytesToReceive;
             }
-            return result;
-            /*}
-            catch
+        }
+
+        public static void setReaction(ISysBot bot, int player, string reaction1, string reaction2)
+        {
+            lock (botLock)
             {
-                MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
-                formControl.ClearRefresh();
+                try
+                {
+                    bot.SendByteArray(stringToByte(reaction1), playerReactionAddress + (player * playerOffset));
+                    bot.SendByteArray(stringToByte(reaction2), (playerReactionAddress + (player * playerOffset)) + 4);
+                }
+                catch
+                {
+                    MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
+                }
+            }
+        }
+
+        public static void SendSpawnRate(ISysBot bot, byte[] buffer, int index, int type, ref int counter)
+        {
+            lock (botLock)
+            {
+                if (type == 0)
+                {
+                    System.Diagnostics.Debug.Assert(buffer.Length == 12 * 6 * 2);
+                    bot.SendByteArrayWithCounter(buffer, InsectAppearPointer + InsectDataSize * index + 0x2, ref counter);
+                }
+                else if (type == 1)
+                {
+                    System.Diagnostics.Debug.Assert(buffer.Length == 78);
+                    bot.SendByteArrayWithCounter(buffer, FishRiverAppearPointer + FishDataSize * index + 0x2, ref counter);
+                }
+                else if (type == 2)
+                {
+                    System.Diagnostics.Debug.Assert(buffer.Length == 78);
+                    bot.SendByteArrayWithCounter(buffer, FishSeaAppearPointer + FishDataSize * index + 0x2, ref counter);
+                }
+                else if (type == 3)
+                {
+                    System.Diagnostics.Debug.Assert(buffer.Length == 78);
+                    bot.SendByteArrayWithCounter(buffer, CreatureSeaAppearPointer + SeaCreatureDataSize * index + 0x2, ref counter);
+                }
+            }
+        }
+
+        public static byte[] GetCritterData(ISysBot sysBot, int mode)
+        {
+            lock (botLock)
+            {
+                if (mode == 0)
+                {
+                    Debug.Print($"[{sysBot.Id}] Peek : Insect " + InsectAppearPointer.ToString("X") + " " + InsectDataSize * InsectNumRecords);
+                    return sysBot.ReadByteArray(InsectAppearPointer, InsectDataSize * InsectNumRecords);
+                }
+                else if (mode == 1)
+                {
+                    Debug.Print($"[{sysBot.Id}] Peek : FishRiver " + FishRiverAppearPointer.ToString("X") + " " + FishDataSize * FishRiverNumRecords);
+                    return sysBot.ReadByteArray(FishRiverAppearPointer, FishDataSize * FishRiverNumRecords);
+                }
+                else if (mode == 2)
+                {
+                    Debug.Print($"[{sysBot.Id}] Peek : FishSea " + FishSeaAppearPointer.ToString("X") + " " + FishDataSize * FishSeaNumRecords);
+                    return sysBot.ReadByteArray(FishSeaAppearPointer, FishDataSize * FishSeaNumRecords);
+                }
+                else if (mode == 3)
+                {
+                    Debug.Print($"[{sysBot.Id}] Peek : CreatureSea " + CreatureSeaAppearPointer.ToString("X") + " " + SeaCreatureDataSize * SeaCreatureNumRecords);
+                    return sysBot.ReadByteArray(CreatureSeaAppearPointer, SeaCreatureDataSize * SeaCreatureNumRecords);
+                }
                 return null;
-            }*/
-        }
-        public static byte[] ReadByteArray(Socket socket, long initAddr, int size, ref int counter)
-        {
-            try
-            {
-                // Read in small chunks
-                byte[] result = new byte[size];
-                const int maxBytesToReceive = 1536;
-                int received = 0;
-                int bytesToReceive;
-                while (received < size)
-                {
-                    bytesToReceive = (size - received > maxBytesToReceive) ? maxBytesToReceive : size - received;
-                    string bufferRepr = ReadToIntermediateString(socket, initAddr + received, bytesToReceive);
-                    for (int i = 0; i < bytesToReceive; i++)
-                    {
-                        result[received + i] = Convert.ToByte(bufferRepr.Substring(i * 2, 2), 16);
-                    }
-                    received += bytesToReceive;
-                    counter++;
-                }
-                return result;
-            }
-            catch
-            {
-                MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
-                return null;
-            }
-        }
-        public static bool SendByteArray(Socket socket, long initAddr, byte[] buffer, int size, ref int counter)
-        {
-            // Send in small chunks
-            const int maxBytesTosend = 1536;
-            int sent = 0;
-            int bytesToSend = 0;
-            StringBuilder dataTemp = new StringBuilder();
-            string msg;
-            while (sent < size)
-            {
-                dataTemp.Clear();
-                bytesToSend = (size - sent > maxBytesTosend) ? maxBytesTosend : size - sent;
-                for (int i = 0; i < bytesToSend; i++)
-                {
-                    dataTemp.Append(String.Format("{0:X2}", buffer[sent + i]));
-                }
-                msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", initAddr + sent, dataTemp.ToString());
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-                sent += bytesToSend;
-                counter++;
-            }
-
-            return false;
-        }
-
-        public static bool SendByteArray(Socket socket, long initAddr, byte[] buffer, int size)
-        {
-            // Send in small chunks
-            const int maxBytesTosend = 1536;
-            int sent = 0;
-            int bytesToSend = 0;
-            StringBuilder dataTemp = new StringBuilder();
-            string msg;
-            while (sent < size)
-            {
-                dataTemp.Clear();
-                bytesToSend = (size - sent > maxBytesTosend) ? maxBytesTosend : size - sent;
-                for (int i = 0; i < bytesToSend; i++)
-                {
-                    dataTemp.Append(String.Format("{0:X2}", buffer[sent + i]));
-                }
-                msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", initAddr + sent, dataTemp.ToString());
-                //Debug.Print(msg);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-                sent += bytesToSend;
-            }
-
-            return false;
-        }
-
-
-        private static string ReadToIntermediateString(Socket socket, long address, int size)
-        {
-            //try
-            //{
-            string msg = String.Format("peek 0x{0:X8} {1}\r\n", address, size);
-            //Debug.Print(msg);
-            SendString(socket, Encoding.UTF8.GetBytes(msg));
-            byte[] b = new byte[size * 2 + 64];
-            int first_rec = ReceiveString(socket, b);
-            //Debug.Print(String.Format("Received {0} Bytes", first_rec));
-            return Encoding.ASCII.GetString(b, 0, size * 2);
-            /*}
-            catch
-            {
-                MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
-                formControl.ClearRefresh();
-                return null;
-            }*/
-        }
-
-        public static void ReadUInt64Array(Socket socket, long initAddr, UInt64[] buffer, int size, int offset = 0)
-        {
-            try
-            {
-                // Read in small chunks
-                const int maxBytesToReceive = 1536;  // Absolutely needs to be multiple of 4
-                int received = 0;
-                int bytesToReceive;
-                while (received < size)
-                {
-                    bytesToReceive = (size - received > maxBytesToReceive) ? maxBytesToReceive : size - received;
-                    string bufferRepr = ReadToIntermediateString(socket, initAddr + received, bytesToReceive);
-                    for (int i = 0; i < (bytesToReceive / 4); i++)
-                    {
-                        buffer[offset + (received / 4) + i] = Convert.ToUInt32(bufferRepr.Substring(i * 8 + 6, 2) +
-                                                    bufferRepr.Substring(i * 8 + 4, 2) +
-                                                    bufferRepr.Substring(i * 8 + 2, 2) +
-                                                    bufferRepr.Substring(i * 8, 2), 16);
-                    }
-                    received += bytesToReceive;
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
             }
         }
 
-        public static bool SendUInt32Array(Socket socket, long initAddr, UInt32[] buffer, int size, int offset = 0)
-        {
-            // Send in small chunks
-            const int maxUInt32Tosend = 125;
-            size /= 4;
-            int sent = 0;
-            int UInt32ToSend = 0;
-            StringBuilder dataTemp = new StringBuilder();
-            string msg;
-            while (sent < size)
-            {
-                dataTemp.Clear();
-                UInt32ToSend = (size - sent > maxUInt32Tosend) ? maxUInt32Tosend : size - sent;
-                for (int i = 0; i < UInt32ToSend; i++)
-                {
-                    dataTemp.Append(String.Format("{0:X2}{1:X2}{2:X2}{3:X2}",
-                        (buffer[offset + sent + i] & 0xFF), (buffer[offset + sent + i] & 0xFF00) >> 8,
-                        (buffer[offset + sent + i] & 0xFF0000) >> 16, (buffer[offset + sent + i] & 0xFF000000) >> 24));
-                }
-                msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", initAddr + sent * 4, dataTemp.ToString());
-                Debug.Print(msg);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-                sent += UInt32ToSend;
-            }
-
-            return false;
-        }
-
-        public static void SendString(Socket socket, byte[] buffer, int offset = 0, int size = 0, int timeout = 100)
-        {
-            int startTickCount = Environment.TickCount;
-            int sent = 0;  // how many bytes is already sent
-            if (size == 0)
-                for (int i = offset; i < buffer.Length; i++)
-                    if (buffer[i] == 0xA)
-                    {
-                        size = i + 1 - offset;
-                        break;
-                    }
-            if (size == 0) size = buffer.Length - offset;
-            do
-            {
-                if (Environment.TickCount > startTickCount + timeout)
-                    throw new Exception("Timeout.");
-                try
-                {
-                    sent += socket.Send(buffer, offset + sent, size - sent, SocketFlags.None);
-                }
-                catch (SocketException ex)
-                {
-                    if (ex.SocketErrorCode == SocketError.WouldBlock ||
-                        ex.SocketErrorCode == SocketError.IOPending ||
-                        ex.SocketErrorCode == SocketError.NoBufferSpaceAvailable)
-                    {
-                        // socket buffer is probably full, wait and try again
-                        //Thread.Sleep(10);
-                    }
-                    else
-                        throw ex;  // any serious error occurr
-                }
-            } while (sent < size);
-        }
-
-        public static int ReceiveString(Socket socket, byte[] buffer, int offset = 0, int size = 0, int timeout = 30000)
-        {
-            int startTickCount = Environment.TickCount;
-            int received = 0;  // how many bytes is already received
-            if (size == 0) size = buffer.Length - offset;
-            do
-            {
-                if (Environment.TickCount > startTickCount + timeout)
-                    throw new Exception("Timeout.");
-                try
-                {
-                    received += socket.Receive(buffer, offset + received, size - received, SocketFlags.None);
-                }
-                catch (SocketException ex)
-                {
-                    if (ex.SocketErrorCode == SocketError.WouldBlock ||
-                        ex.SocketErrorCode == SocketError.IOPending ||
-                        ex.SocketErrorCode == SocketError.NoBufferSpaceAvailable)
-                    {
-                        // socket buffer is probably empty, wait and try again
-                        //Thread.Sleep(30);
-                    }
-                    else
-                        throw ex;  // any serious error occurr
-                }
-            } while (received < size && buffer[received - 1] != 0xA);
-            return received;
-        }
-
-        public static byte[] GetTownID(Socket socket, USBBot bot)
+        public static byte[] GetVillager(ISysBot sysBot, int num, int size, ref int counter)
         {
             lock (botLock)
             {
-                if (bot == null)
+                Debug.Print($"[{sysBot.Id}] Peek : Villager " + (VillagerAddress + (num * VillagerSize)).ToString("X") + " " + num + " " + size);
+
+                byte[] b = sysBot.ReadByteArray((uint)(VillagerAddress + (num * VillagerSize)), size, ref counter);
+
+                if (b == null)
                 {
-                    Debug.Print("[Sys] Peek : TownID " + TownNameddress.ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, TownNameddress, 0x1C);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n TownNameddress");
-                    }
-                    return b;
+                    MessageBox.Show("Wait something is wrong here!? \n\n Villager");
                 }
-                else
-                {
-                    Debug.Print("[Usb] Peek : TownID " + TownNameddress.ToString("X"));
 
-                    byte[] b = bot.ReadBytes(TownNameddress, 0x1C);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n TownNameddress");
-                    }
-                    return b;
-                }
+                return b;
             }
         }
 
-        public static byte[] GetWeatherSeed(Socket socket, USBBot bot)
+        public static byte[] GetVillager(ISysBot sysBot, int num, int size)
         {
             lock (botLock)
             {
-                if (bot == null)
+                byte[] b = sysBot.ReadByteArray((uint)(VillagerAddress + (num * VillagerSize)), size);
+
+                if (b == null)
                 {
-                    Debug.Print("[Sys] Peek : WeatherSeed " + weatherSeed.ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, weatherSeed, 0x4);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n WeatherSeed");
-                    }
-                    return b;
+                    MessageBox.Show("Wait something is wrong here!? \n\n Villager");
                 }
-                else
-                {
-                    Debug.Print("[Usb] Peek : WeatherSeed " + weatherSeed.ToString("X"));
 
-                    byte[] b = bot.ReadBytes(weatherSeed, 0x4);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n WeatherSeed");
-                    }
-                    return b;
-                }
+                return b;
             }
         }
 
-        public static byte[] getReaction(Socket socket, USBBot bot, int player)
+        public static void LoadVillager(ISysBot bot, int num, byte[] villager, ref int counter)
+        {
+            lock (botLock)
+            {
+                System.Diagnostics.Debug.Assert(villager.Length == VillagerSize);
+                bot.SendByteArrayWithCounter(villager, VillagerAddress + (num * VillagerSize), ref counter);
+                //bot.SendByteArrayWithCounter(villager, VillagerAddress + (num * VillagerSize) + VillagerHouseBufferDiff, ref counter);
+            }
+        }
+
+        public static byte[] GetMoveout(ISysBot sysBot, int num, int size, ref int counter)
+        {
+            lock (botLock)
+            {
+                //Debug.Print($"[{sysBot.Id}] Peek : Moveout " + (VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset).ToString("X") + " " + size);
+
+                byte[] b = sysBot.ReadByteArray((uint)(VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset), size, ref counter);
+
+                if (b == null)
+                {
+                    MessageBox.Show("Wait something is wrong here!? \n\n Moveout");
+                }
+
+                return b;
+            }
+        }
+
+        public static byte[] GetMoveout(ISysBot sysBot, int num, int size)
+        {
+            lock (botLock)
+            {
+                byte[] b = sysBot.ReadByteArray((uint)(VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset), size);
+
+                if (b == null)
+                {
+                    MessageBox.Show("Wait something is wrong here!? \n\n Moveout");
+                }
+
+                return b;
+            }
+        }
+
+        public static byte[] GetHouse(ISysBot sysBot, int num, ref int counter, uint diff = 0)
+        {
+            lock (botLock)
+            {
+                Debug.Print($"[{sysBot.Id}] Peek : House " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + diff).ToString("X") + " " + (int)VillagerHouseSize);
+
+                byte[] b = sysBot.ReadByteArray(VillagerHouseAddress + (num * (VillagerHouseSize)) + diff, (int)VillagerHouseSize, ref counter);
+
+                if (b == null)
+                {
+                    MessageBox.Show("Wait something is wrong here!? \n\n House");
+                }
+
+                return b;
+            }
+        }
+
+        public static void LoadHouse(ISysBot sysBot, int num, byte[] house, ref int counter)
+        {
+            lock (botLock)
+            {
+                System.Diagnostics.Debug.Assert(house.Length == VillagerHouseSize);
+
+                sysBot.SendByteArrayWithCounter(house, VillagerHouseAddress + (num * (VillagerHouseSize)), ref counter);
+
+                sysBot.SendByteArrayWithCounter(house, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseBufferDiff, ref counter);
+            }
+        }
+
+        public static byte GetHouseOwner(ISysBot sysBot, int num, ref int counter)
+        {
+            lock (botLock)
+            {
+                Debug.Print($"[{sysBot.Id}] Peek : HouseOwner " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset).ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset, 1, ref counter);
+
+                if (b == null)
+                {
+                    MessageBox.Show("Wait something is wrong here!? \n\n HouseOwner");
+                    return 0xDD;
+                }
+
+                return b[0];
+            }
+        }
+
+        public static byte GetHouseOwner(ISysBot sysBot, int num)
+        {
+            lock (botLock)
+            {
+                byte[] b = sysBot.ReadByteArray(VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset, 1);
+
+                if (b == null)
+                {
+                    MessageBox.Show("Wait something is wrong here!? \n\n HouseOwner");
+                    return 0xDD;
+                }
+
+                return b[0];
+            }
+        }
+
+        public static byte[] GetCatchphrase(ISysBot sysBot, int num, ref int counter)
+        {
+            lock (botLock)
+            {
+                Debug.Print($"[{sysBot.Id}] Peek : Catchphrase " + (VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset).ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset, 0x2C, ref counter);
+
+                if (b == null)
+                {
+                    MessageBox.Show("Wait something is wrong here!? \n\n Catchphrase");
+                }
+
+                return b;
+            }
+        }
+
+        public static void SetCatchphrase(ISysBot bot, int num, byte[] phrase)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        /*
-                        string msg = String.Format("peek 0x{0:X8} {1}\r\n", reactionAddress.ToString("X"), 8);
-                        //Debug.Print("Peek Reaction : " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        byte[] b = new byte[4096];
-                        socket.Receive(b);
-                        */
-                        Debug.Print("[Sys] Peek : Reaction " + (playerReactionAddress + (player * playerOffset)).ToString("X"));
-
-                        byte[] b = ReadByteArray(socket, (playerReactionAddress + (player * playerOffset)), 8);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n Reaction ");
-                        }
-
-                        return b;
-                    }
-                    else
-                    {
-                        Debug.Print("[Usb] Peek : Reaction " + (playerReactionAddress + (player * playerOffset)).ToString("X"));
-
-                        byte[] b = bot.ReadBytes((uint)(playerReactionAddress + (player * playerOffset)), 8);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n Reaction");
-                        }
-
-                        return b;
-                    }
-
-                }
-                catch
-                {
-                    MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
-                    return null;
-                }
-            }
-        }
-
-        public static void setReaction(Socket socket, USBBot bot, int player, string reaction1, string reaction2)
-        {
-            lock (botLock)
-            {
-                try
-                {
-                    if (bot == null)
-                    {
-                        string msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (playerReactionAddress + (player * playerOffset)).ToString("x"), reaction1);
-                        Debug.Print("Poke Reaction: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", ((playerReactionAddress + (player * playerOffset)) + 4).ToString("x"), reaction2);
-                        Debug.Print("Poke Reaction: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(stringToByte(reaction1), (uint)(playerReactionAddress + (player * playerOffset)));
-
-                        bot.WriteBytes(stringToByte(reaction2), (uint)((playerReactionAddress + (player * playerOffset)) + 4));
-                    }
+                    bot.SendByteArray(phrase, VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset);
                 }
                 catch
                 {
@@ -1351,583 +1068,37 @@ namespace ACNHPoker
             }
         }
 
-        public static void SendSpawnRate(Socket socket, USBBot bot, byte[] buffer, int index, int type, ref int counter)
+        public static byte GetVillagerFlag(ISysBot sysBot, int num, uint offset)
         {
             lock (botLock)
             {
-                if (bot == null)
+                Debug.Print($"[{sysBot.Id}] Peek : VillagerFlag " + (VillagerAddress + (num * VillagerSize) + offset).ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(VillagerAddress + (num * VillagerSize) + offset, 1);
+
+                if (b == null)
                 {
-                    if (type == 0)
-                    {
-                        SendByteArray(socket, InsectAppearPointer + InsectDataSize * index + 0x2, buffer, 12 * 6 * 2, ref counter);
-                    }
-                    else if (type == 1)
-                    {
-                        SendByteArray(socket, FishRiverAppearPointer + FishDataSize * index + 0x2, buffer, 78, ref counter);
-                    }
-                    else if (type == 2)
-                    {
-                        SendByteArray(socket, FishSeaAppearPointer + FishDataSize * index + 0x2, buffer, 78, ref counter);
-                    }
-                    else if (type == 3)
-                    {
-                        SendByteArray(socket, CreatureSeaAppearPointer + SeaCreatureDataSize * index + 0x2, buffer, 78, ref counter);
-                    }
+                    MessageBox.Show("Wait something is wrong here!? \n\n VillagerFlag");
                 }
-                else
-                {
-                    if (type == 0)
-                    {
-                        bot.WriteBytes(buffer, (uint)(InsectAppearPointer + InsectDataSize * index + 0x2));
-                    }
-                    else if (type == 1)
-                    {
-                        bot.WriteBytes(buffer, (uint)(FishRiverAppearPointer + FishDataSize * index + 0x2));
-                    }
-                    else if (type == 2)
-                    {
-                        bot.WriteBytes(buffer, (uint)(FishSeaAppearPointer + FishDataSize * index + 0x2));
-                    }
-                    else if (type == 3)
-                    {
-                        bot.WriteBytes(buffer, (uint)(CreatureSeaAppearPointer + SeaCreatureDataSize * index + 0x2));
-                    }
-                }
+
+                return b[0];
             }
         }
 
-        public static byte[] GetCritterData(Socket socket, USBBot bot, int mode)
+        public static byte GetVillagerHouseFlag(ISysBot sysBot, int num, uint offset, ref int counter)
         {
             lock (botLock)
             {
-                if (bot == null)
+                Debug.Print($"[{sysBot.Id}] Peek : VillagerHouseFlag " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + offset).ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(VillagerHouseAddress + (num * (VillagerHouseSize)) + offset, 1, ref counter);
+
+                if (b == null)
                 {
-                    if (mode == 0)
-                    {
-                        Debug.Print("[Sys] Peek : Insect " + InsectAppearPointer.ToString("X") + " " + InsectDataSize * InsectNumRecords);
-                        return ReadByteArray(socket, InsectAppearPointer, InsectDataSize * InsectNumRecords);
-                    }
-                    else if (mode == 1)
-                    {
-                        Debug.Print("[Sys] Peek : FishRiver " + FishRiverAppearPointer.ToString("X") + " " + FishDataSize * FishRiverNumRecords);
-                        return ReadByteArray(socket, FishRiverAppearPointer, FishDataSize * FishRiverNumRecords);
-                    }
-                    else if (mode == 2)
-                    {
-                        Debug.Print("[Sys] Peek : FishSea " + FishSeaAppearPointer.ToString("X") + " " + FishDataSize * FishSeaNumRecords);
-                        return ReadByteArray(socket, FishSeaAppearPointer, FishDataSize * FishSeaNumRecords);
-                    }
-                    else if (mode == 3)
-                    {
-                        Debug.Print("[Sys] Peek : CreatureSea " + CreatureSeaAppearPointer.ToString("X") + " " + SeaCreatureDataSize * SeaCreatureNumRecords);
-                        return ReadByteArray(socket, CreatureSeaAppearPointer, SeaCreatureDataSize * SeaCreatureNumRecords);
-                    }
-                    return null;
+                    MessageBox.Show("Wait something is wrong here!? \n\n VillagerHouseFlag");
                 }
-                else
-                {
-                    if (mode == 0)
-                    {
-                        Debug.Print("[Usb] Peek : Insect " + InsectAppearPointer.ToString("X") + " " + InsectDataSize * InsectNumRecords);
-                        return ReadLargeBytes(bot, InsectAppearPointer, InsectDataSize * InsectNumRecords);
-                    }
-                    else if (mode == 1)
-                    {
-                        Debug.Print("[Usb] Peek : FishRiver " + FishRiverAppearPointer.ToString("X") + " " + FishDataSize * FishRiverNumRecords);
-                        return ReadLargeBytes(bot, FishRiverAppearPointer, FishDataSize * FishRiverNumRecords);
-                    }
-                    else if (mode == 2)
-                    {
-                        Debug.Print("[Usb] Peek : FishSea " + FishSeaAppearPointer.ToString("X") + " " + FishDataSize * FishSeaNumRecords);
-                        return ReadLargeBytes(bot, FishSeaAppearPointer, FishDataSize * FishSeaNumRecords);
-                    }
-                    else if (mode == 3)
-                    {
-                        Debug.Print("[Usb] Peek : CreatureSea " + CreatureSeaAppearPointer.ToString("X") + " " + SeaCreatureDataSize * SeaCreatureNumRecords);
-                        return ReadLargeBytes(bot, CreatureSeaAppearPointer, SeaCreatureDataSize * SeaCreatureNumRecords);
-                    }
-                    return null;
-                }
-            }
-        }
 
-        private static byte[] ReadLargeBytes(USBBot bot, uint address, int size)
-        {
-            // Read in small chunks
-            byte[] result = new byte[size];
-            const int maxBytesToReceive = 468;
-            int received = 0;
-            int bytesToReceive;
-            while (received < size)
-            {
-                bytesToReceive = (size - received > maxBytesToReceive) ? maxBytesToReceive : size - received;
-                byte[] buffer = bot.ReadBytes((uint)(address + received), bytesToReceive);
-                for (int i = 0; i < bytesToReceive; i++)
-                {
-                    result[received + i] = buffer[i];
-                }
-                received += bytesToReceive;
-            }
-            return result;
-        }
-
-        private static byte[] ReadLargeBytes(USBBot bot, uint address, int size, ref int counter)
-        {
-            // Read in small chunks
-            byte[] result = new byte[size];
-            const int maxBytesToReceive = 468;
-            int received = 0;
-            int bytesToReceive;
-            while (received < size)
-            {
-                bytesToReceive = (size - received > maxBytesToReceive) ? maxBytesToReceive : size - received;
-                byte[] buffer = bot.ReadBytes((uint)(address + received), bytesToReceive);
-                for (int i = 0; i < bytesToReceive; i++)
-                {
-                    result[received + i] = buffer[i];
-                }
-                received += bytesToReceive;
-                counter++;
-            }
-            return result;
-        }
-
-        private static void WriteLargeBytes(USBBot bot, long initAddr, byte[] buffer, int size, ref int counter)
-        {
-
-            const int maxBytesTosend = 468;
-            int sent = 0;
-            int bytesToSend = 0;
-            byte[] temp;
-            while (sent < size)
-            {
-                bytesToSend = (size - sent > maxBytesTosend) ? maxBytesTosend : size - sent;
-                temp = new byte[bytesToSend];
-                for (int i = 0; i < bytesToSend; i++)
-                {
-                    temp[i] = buffer[sent + i];
-                }
-                /*
-                for (int i = 0; i < bytesToSend; i++)
-                {
-                    dataTemp.Append(String.Format("{0:X2}", buffer[sent + i]));
-                }
-                msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", initAddr + sent, dataTemp.ToString());
-                */
-                //Debug.Print(msg);
-                //SendString(socket, Encoding.UTF8.GetBytes(msg));
-                bot.WriteBytes(temp, (uint)(initAddr + sent));
-                sent += bytesToSend;
-                counter++;
-            }
-        }
-
-        public static byte[] GetVillager(Socket socket, USBBot bot, int num, int size, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : Villager " + (VillagerAddress + (num * VillagerSize)).ToString("X") + " " + num + " " + size);
-
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize), size, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Villager " + (VillagerAddress + (num * VillagerSize)).ToString("X") + " " + num + " " + size);
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize)), size, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
-                }
-            }
-        }
-
-        public static byte[] GetVillager(Socket socket, USBBot bot, int num, int size)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize), size);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
-                }
-                else
-                {
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize)), size);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
-                }
-            }
-        }
-
-        public static void LoadVillager(Socket socket, USBBot bot, int num, byte[] villager, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    SendByteArray(socket, VillagerAddress + (num * VillagerSize), villager, (int)VillagerSize, ref counter);
-
-                    //SendByteArray(socket, VillagerAddress + (num * VillagerSize) + VillagerHouseBufferDiff, villager, (int)VillagerSize, ref counter);
-                }
-                else
-                {
-                    WriteLargeBytes(bot, VillagerAddress + (num * VillagerSize), villager, (int)VillagerSize, ref counter);
-
-                    //WriteLargeBytes(bot, VillagerAddress + (num * VillagerSize) + VillagerHouseBufferDiff, villager, (int)VillagerSize, ref counter);
-                }
-            }
-        }
-
-        public static byte[] GetMoveout(Socket socket, USBBot bot, int num, int size, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    //Debug.Print("[Sys] Peek : Moveout " + (VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset).ToString("X") + " " + size);
-
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset, size, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Moveout");
-                    }
-
-                    return b;
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Moveout " + (VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset).ToString("X") + " " + size);
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset), size, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Moveout");
-                    }
-
-                    return b;
-                }
-            }
-        }
-
-        public static byte[] GetMoveout(Socket socket, USBBot bot, int num, int size)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset, size);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Moveout");
-                    }
-
-                    return b;
-                }
-                else
-                {
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset), size);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Moveout");
-                    }
-
-                    return b;
-                }
-            }
-        }
-
-        public static void SetMoveout(Socket socket, USBBot bot, int num, byte[] flagData, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    SendByteArray(socket, VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset, flagData, flagData.Length, ref counter);
-                }
-                else
-                {
-                    WriteLargeBytes(bot, VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset, flagData, flagData.Length, ref counter);
-                }
-            }
-        }
-
-        public static byte[] GetHouse(Socket socket, USBBot bot, int num, ref int counter, uint diff = 0)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : House " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + diff).ToString("X") + " " + (int)VillagerHouseSize);
-
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + diff, (int)VillagerHouseSize, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n House");
-                    }
-
-                    return b;
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : House " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + diff).ToString("X") + " " + (int)VillagerHouseSize);
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + diff), (int)VillagerHouseSize);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n House");
-                    }
-
-                    return b;
-                }
-            }
-        }
-
-        public static void LoadHouse(Socket socket, USBBot bot, int num, byte[] house, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    SendByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)), house, (int)VillagerHouseSize, ref counter);
-
-                    SendByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseBufferDiff, house, (int)VillagerHouseSize, ref counter);
-                }
-                else
-                {
-                    WriteLargeBytes(bot, VillagerHouseAddress + (num * (VillagerHouseSize)), house, (int)VillagerHouseSize, ref counter);
-
-                    WriteLargeBytes(bot, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseBufferDiff, house, (int)VillagerHouseSize, ref counter);
-                }
-            }
-        }
-
-        public static byte GetHouseOwner(Socket socket, USBBot bot, int num, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : HouseOwner " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset).ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset, 1, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n HouseOwner");
-                        return 0xDD;
-                    }
-
-                    return b[0];
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : HouseOwner " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset).ToString("X"));
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset), 1, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n HouseOwner");
-                        return 0xDD;
-                    }
-
-                    return b[0];
-                }
-            }
-        }
-
-        public static byte GetHouseOwner(Socket socket, USBBot bot, int num)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset, 1);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n HouseOwner");
-                        return 0xDD;
-                    }
-
-                    return b[0];
-                }
-                else
-                {
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + VillagerHouseOwnerOffset), 1);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n HouseOwner");
-                        return 0xDD;
-                    }
-
-                    return b[0];
-                }
-            }
-        }
-
-        public static byte[] GetCatchphrase(Socket socket, USBBot bot, int num, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : Catchphrase " + (VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset).ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset, 0x2C, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Catchphrase");
-                    }
-
-                    return b;
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Catchphrase " + (VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset).ToString("X"));
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset), 0x2C, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Catchphrase");
-                    }
-
-                    return b;
-                }
-            }
-        }
-
-        public static void SetCatchphrase(Socket socket, USBBot bot, int num, byte[] pharse)
-        {
-            lock (botLock)
-            {
-                try
-                {
-                    if (bot == null)
-                    {
-                        string msg;
-
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset).ToString("X"), ByteToHexString(pharse));
-                        Debug.Print("Poke Catchphrase: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        //msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset + VillagerHouseBufferDiff).ToString("X"), ByteToHexString(pharse));
-                        //Debug.Print("Poke Catchphrase: " + msg);
-                        //SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(pharse, (uint)(VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset));
-
-                        //bot.WriteBytes(pharse, (uint)(VillagerAddress + (num * VillagerSize) + VillagerCatchphraseOffset + VillagerHouseBufferDiff));
-                    }
-                }
-                catch
-                {
-                    MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
-                }
-            }
-        }
-
-        public static byte GetVillagerFlag(Socket socket, USBBot bot, int num, uint offset)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : VillagerFlag " + (VillagerAddress + (num * VillagerSize) + offset).ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize) + offset, 1);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n VillagerFlag");
-                    }
-
-                    return b[0];
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : VillagerFlag " + (VillagerAddress + (num * VillagerSize) + offset).ToString("X"));
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize) + offset), 1);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n VillagerFlag");
-                    }
-
-                    return b[0];
-                }
-            }
-        }
-
-        public static byte GetVillagerHouseFlag(Socket socket, USBBot bot, int num, uint offset, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : VillagerHouseFlag " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + offset).ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, VillagerHouseAddress + (num * (VillagerHouseSize)) + offset, 1, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n VillagerHouseFlag");
-                    }
-
-                    return b[0];
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : VillagerHouseFlag " + (VillagerHouseAddress + (num * (VillagerHouseSize)) + offset).ToString("X"));
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerHouseAddress + (num * (VillagerHouseSize)) + offset), 1, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n VillagerHouseFlag");
-                    }
-
-                    return b[0];
-                }
+                return b[0];
             }
         }
 
@@ -1941,54 +1112,41 @@ namespace ACNHPoker
             return -1;
         }
 
-        public static void SetMoveout(Socket socket, USBBot bot, int num, string MoveoutFlag = "2", string ForceMoveoutFlag = "1")
+        public static void SetMoveout(ISysBot bot, int num, string MoveoutFlag = "2", string ForceMoveoutFlag = "1")
+        {
+            lock (botLock)
+            {
+                bot.SendByteArray(stringToByte(MoveoutFlag), VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset);
+                bot.SendByteArray(stringToByte(ForceMoveoutFlag), VillagerAddress + (num * VillagerSize) + VillagerForceMoveoutOffset);
+                bot.SendByteArray(stringToByte("0"), VillagerAddress + (num * VillagerSize) + VillagerAbandonHouseOffset);
+            }
+        }
+
+        public static Task SetMoveoutAsync(ISysBot bot, int num, string moveoutFlag = "2", string forceMoveoutFlag = "1")
+        {
+            return Task.Run(() =>
+            {
+                SetMoveout(bot, num, moveoutFlag, forceMoveoutFlag);
+            });
+        }
+
+        public static void SetMoveout(ISysBot bot, int num, byte[] flagData, ref int counter)
+        {
+            lock (botLock)
+            {
+                bot.SendByteArrayWithCounter(flagData, VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset, ref counter);
+            }
+        }
+
+        public static void SetFriendship(ISysBot bot, int num, int player, string FriendshipFlag = "FF")
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        string msg;
+                    bot.SendByteArray(stringToByte(FriendshipFlag), VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset) + VillagerFriendshipOffset);
 
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset).ToString("X"), MoveoutFlag);
-                        Debug.Print("Poke Moveout: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        //msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset + VillagerHouseBufferDiff).ToString("X"), MoveoutFlag);
-                        //Debug.Print("Poke Moveout: " + msg);
-                        //SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerForceMoveoutOffset).ToString("X"), ForceMoveoutFlag);
-                        Debug.Print("Poke ForceMoveout: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        //msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerForceMoveoutOffset + VillagerHouseBufferDiff).ToString("X"), ForceMoveoutFlag);
-                        //Debug.Print("Poke ForceMoveout: " + msg);
-                        //SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerAbandonHouseOffset).ToString("X"), "0");
-                        Debug.Print("Poke AbandonHouse: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                        //msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + VillagerAbandonHouseOffset + VillagerHouseBufferDiff).ToString("X"), "0");
-                        //Debug.Print("Poke AbandonHouse: " + msg);
-                        //SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(stringToByte(MoveoutFlag), (uint)(VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset));
-
-                        //bot.WriteBytes(stringToByte(MoveoutFlag), (uint)(VillagerAddress + (num * VillagerSize) + VillagerMoveoutOffset + VillagerHouseBufferDiff));
-
-                        bot.WriteBytes(stringToByte(ForceMoveoutFlag), (uint)(VillagerAddress + (num * VillagerSize) + VillagerForceMoveoutOffset));
-
-                        //bot.WriteBytes(stringToByte(ForceMoveoutFlag), (uint)(VillagerAddress + (num * VillagerSize) + VillagerForceMoveoutOffset + VillagerHouseBufferDiff));
-
-                        bot.WriteBytes(stringToByte("0"), (uint)(VillagerAddress + (num * VillagerSize) + VillagerAbandonHouseOffset));
-
-                        //bot.WriteBytes(stringToByte("0"), (uint)(VillagerAddress + (num * VillagerSize) + VillagerAbandonHouseOffset + VillagerHouseBufferDiff));
-                    }
+                    //bot.SendByteArray(stringToByte(FriendshipFlag), VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset) + VillagerFriendshipOffset + VillagerHouseBufferDiff);
                 }
                 catch
                 {
@@ -1997,148 +1155,45 @@ namespace ACNHPoker
             }
         }
 
-        public static void SetFriendship(Socket socket, USBBot bot, int num, int player, string FriendshipFlag = "FF")
+        public static byte[] GetPlayerDataVillager(ISysBot sysBot, int num, int player, int size)
         {
             lock (botLock)
             {
-                try
-                {
-                    if (bot == null)
-                    {
-                        string msg;
-                        msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset) + VillagerFriendshipOffset).ToString("X"), FriendshipFlag);
-                        Debug.Print("Poke Friendship: " + msg);
-                        SendString(socket, Encoding.UTF8.GetBytes(msg));
+                Debug.Print($"[{sysBot.Id}] Peek : Villager " + player + " " + (VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset)).ToString("X") + " " + num + " " + size);
 
-                        //msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset) + VillagerFriendshipOffset + VillagerHouseBufferDiff).ToString("X"), FriendshipFlag);
-                        //Debug.Print("Poke Friendship: " + msg);
-                        //SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    }
-                    else
-                    {
-                        bot.WriteBytes(stringToByte(FriendshipFlag), (uint)(VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset) + VillagerFriendshipOffset));
+                byte[] b = sysBot.ReadByteArray(VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset), size);
 
-                        //bot.WriteBytes(stringToByte(FriendshipFlag), (uint)(VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset) + VillagerFriendshipOffset + VillagerHouseBufferDiff));
-                    }
-                }
-                catch
+                if (b == null)
                 {
-                    MessageBox.Show("Exception, try restarting the program or reconnecting to the switch.");
+                    MessageBox.Show("Wait something is wrong here!? \n\n Villager");
                 }
+
+                return b;
             }
         }
 
-        public static byte[] GetPlayerDataVillager(Socket socket, USBBot bot, int num, int player, int size, ref int counter)
+        public static void SetMysVillager(ISysBot bot, byte[] buffer, byte[] species, ref int counter)
         {
             lock (botLock)
             {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : Villager " + player + " " + (VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset)).ToString("X") + " " + num + " " + size);
-
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset), size, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Villager " + player + " " + (VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset)).ToString("X") + " " + num + " " + size);
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset)), size, ref counter);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
-                }
+                bot.SendByteArrayWithCounter(buffer, MysIslandVillagerAddress, ref counter);
+                bot.SendByteArrayWithCounter(species, MysIslandVillagerSpecies, ref counter);
             }
         }
 
-        public static byte[] GetPlayerDataVillager(Socket socket, USBBot bot, int num, int player, int size)
+        public static byte[] GetMysVillagerName(ISysBot sysBot)
         {
             lock (botLock)
             {
-                if (bot == null)
+                Debug.Print($"[{sysBot.Id}] Peek : MysVillager " + MysIslandVillagerAddress.ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(MysIslandVillagerAddress, 8);
+
+                if (b == null)
                 {
-                    Debug.Print("[Sys] Peek : Villager " + player + " " + (VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset)).ToString("X") + " " + num + " " + size);
-
-                    byte[] b = ReadByteArray(socket, VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset), size);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
+                    MessageBox.Show("Wait something is wrong here!? \n\n MysVillagerName");
                 }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Villager " + player + " " + (VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset)).ToString("X") + " " + num + " " + size);
-
-                    byte[] b = ReadLargeBytes(bot, (uint)(VillagerAddress + (num * VillagerSize) + (player * VillagerPlayerOffset)), size);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Villager");
-                    }
-
-                    return b;
-                }
-            }
-        }
-
-        public static void SetMysVillager(Socket socket, USBBot bot, byte[] buffer, byte[] species, ref int counter)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    SendByteArray(socket, MysIslandVillagerAddress, buffer, buffer.Length, ref counter);
-                    SendByteArray(socket, MysIslandVillagerSpecies, species, species.Length, ref counter);
-                }
-                else
-                {
-                    bot.WriteBytes(buffer, MysIslandVillagerAddress);
-                    bot.WriteBytes(species, MysIslandVillagerSpecies);
-                }
-            }
-        }
-
-        public static byte[] GetMysVillagerName(Socket socket, USBBot bot)
-        {
-            lock (botLock)
-            {
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : MysVillager " + MysIslandVillagerAddress.ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, MysIslandVillagerAddress, 8);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n MysVillagerName");
-                    }
-                    return b;
-                }
-                else
-                {
-                    Debug.Print("[Usb] Peek : MysVillager " + MysIslandVillagerAddress.ToString("X"));
-
-                    byte[] b = bot.ReadBytes(MysIslandVillagerAddress, 8);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n MysVillagerName");
-                    }
-                    return b;
-                }
+                return b;
             }
         }
 
@@ -2180,26 +1235,19 @@ namespace ACNHPoker
             }
         }
 
-        public static void dropItem(Socket socket, USBBot bot, long address, string itemId, string count, string flag1, string flag2)
+        public static void dropItem(ISysBot bot, long address, string itemId, string count, string flag1, string flag2)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        SendByteArray(socket, address, stringToByte(buildDropStringLeft(itemId, count, flag1, flag2)), 16);
-                        SendByteArray(socket, address + mapOffset, stringToByte(buildDropStringLeft(itemId, count, flag1, flag2)), 16);
-
-                        SendByteArray(socket, address + 0x600, stringToByte(buildDropStringRight(itemId)), 16);
-                        SendByteArray(socket, address + 0x600 + mapOffset, stringToByte(buildDropStringRight(itemId)), 16);
-
-                        Debug.Print("Drop: " + address + " " + itemId + " " + count + " " + flag1 + " " + flag2);
-                    }
-                    else
-                    {
-
-                    }
+                    byte[] bufferLeft = stringToByte(buildDropStringLeft(itemId, count, flag1, flag2));
+                    byte[] bufferRight = stringToByte(buildDropStringRight(itemId));
+                    bot.SendByteArray(bufferLeft, address);
+                    bot.SendByteArray(bufferLeft, address + mapOffset);
+                    bot.SendByteArray(bufferRight, address + 0x600);
+                    bot.SendByteArray(bufferRight, address + 0x600 + mapOffset);
+                    Debug.Print("Drop: " + address + " " + itemId + " " + count + " " + flag1 + " " + flag2);
                 }
                 catch
                 {
@@ -2208,26 +1256,19 @@ namespace ACNHPoker
             }
         }
 
-        public static void deleteFloorItem(Socket socket, USBBot bot, long address)
+        public static void deleteFloorItem(ISysBot bot, long address)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
-                    {
-                        SendByteArray(socket, address, stringToByte(buildDropStringLeft("FFFE", "00000000", "00", "00", true)), 16);
-                        SendByteArray(socket, address + mapOffset, stringToByte(buildDropStringLeft("FFFE", "00000000", "00", "00", true)), 16);
-
-                        SendByteArray(socket, address + 0x600, stringToByte(buildDropStringRight("FFFE", true)), 16);
-                        SendByteArray(socket, address + 0x600 + mapOffset, stringToByte(buildDropStringRight("FFFE", true)), 16);
-
-                        Debug.Print("Delete: " + address);
-                    }
-                    else
-                    {
-
-                    }
+                    byte[] bufferLeft = stringToByte(buildDropStringLeft("FFFE", "00000000", "00", "00", true));
+                    byte[] bufferRight = stringToByte(buildDropStringRight("FFFE", true));
+                    bot.SendByteArray(bufferLeft, address);
+                    bot.SendByteArray(bufferLeft, address + mapOffset);
+                    bot.SendByteArray(bufferRight, address + 0x600);
+                    bot.SendByteArray(bufferRight, address + 0x600 + mapOffset);
+                    Debug.Print("Delete: " + address);
                 }
                 catch
                 {
@@ -2236,36 +1277,21 @@ namespace ACNHPoker
             }
         }
 
-        public static byte[] getMapLayer(Socket socket, USBBot bot, long address, ref int counter)
+        public static byte[] getMapLayer(ISysBot bot, long address, ref int counter)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
+                    Debug.Print($"[{bot.Id}] Peek : Map Layer " + address.ToString("X"));
+
+                    byte[] b = bot.ReadByteArray8KWithCounter(address, (int)mapSize, ref counter);
+
+                    if (b == null)
                     {
-                        Debug.Print("[Sys] Peek : Map Layer " + address.ToString("X"));
-
-                        byte[] b = ReadByteArray8(socket, address, (int)mapSize, ref counter);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n Map Layer");
-                        }
-                        return b;
+                        MessageBox.Show("Wait something is wrong here!? \n\n Map Layer");
                     }
-                    else
-                    {
-                        Debug.Print("[Usb] Peek : Map Layer " + address.ToString("X"));
-
-                        byte[] b = ReadLargeBytes(bot, (uint)address, (int)mapSize, ref counter);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n Map Layer");
-                        }
-                        return b;
-                    }
+                    return b;
                 }
                 catch
                 {
@@ -2275,36 +1301,21 @@ namespace ACNHPoker
             }
         }
 
-        public static byte[] getAcre(Socket socket, USBBot bot)
+        public static byte[] getAcre(ISysBot sysBot)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
+                    Debug.Print($"[{sysBot.Id}] Peek : Acre " + AcreOffset);
+
+                    byte[] b = sysBot.ReadByteArray(AcreOffset, AcreAndPlaza);
+
+                    if (b == null)
                     {
-                        Debug.Print("[Sys] Peek : Acre " + AcreOffset);
-
-                        byte[] b = ReadByteArray(socket, AcreOffset, AcreAndPlaza);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n Acre");
-                        }
-                        return b;
+                        MessageBox.Show("Wait something is wrong here!? \n\n Acre");
                     }
-                    else
-                    {
-                        Debug.Print("[Usb] Peek : Acre " + AcreOffset);
-
-                        byte[] b = bot.ReadBytes(AcreOffset, AcreAndPlaza);
-
-                        if (b == null)
-                        {
-                            MessageBox.Show("Wait something is wrong here!? \n\n Acre");
-                        }
-                        return b;
-                    }
+                    return b;
                 }
                 catch
                 {
@@ -2314,104 +1325,57 @@ namespace ACNHPoker
             }
         }
 
-        public static byte[] getCoordinate(Socket socket, USBBot bot)
+        public static byte[] getCoordinate(ISysBot sysBot)
         {
             lock (botLock)
             {
-                if (bot == null)
+                Debug.Print($"[{sysBot.Id}] Peek : Coordinate " + coordinate.ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(coordinate, 8);
+
+                if (b == null)
                 {
-                    Debug.Print("[Sys] Peek : Coordinate " + coordinate.ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, coordinate, 8);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Coordinate");
-                    }
-                    return b;
+                    MessageBox.Show("Wait something is wrong here!? \n\n Coordinate");
                 }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Coordinate " + coordinate.ToString("X"));
-
-                    byte[] b = bot.ReadBytes(coordinate, 8);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Coordinate");
-                    }
-                    return b;
-                }
+                return b;
             }
         }
 
-        public static byte[] getSaving(Socket socket, USBBot bot = null)
+        public static byte[] getSaving(ISysBot sysBot)
         {
             lock (botLock)
             {
-                if (bot == null)
+                Debug.Print($"[{sysBot.Id}] Peek : Save " + savingOffset.ToString("X"));
+
+                byte[] b = sysBot.ReadByteArray(savingOffset, 32);
+
+                if (b == null)
                 {
-                    Debug.Print("[Sys] Peek : Save " + savingOffset.ToString("X"));
-
-                    byte[] b = ReadByteArray(socket, savingOffset, 32);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Save");
-                    }
-                    return b;
+                    MessageBox.Show("Wait something is wrong here!? \n\n Save");
                 }
-                else
-                {
-                    Debug.Print("[Usb] Peek : Save " + savingOffset.ToString("X"));
-
-                    byte[] b = bot.ReadBytes(savingOffset, 32);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Save");
-                    }
-                    return b;
-                }
+                return b;
             }
         }
 
-        public static void dropColumn(Socket socket, USBBot bot, uint address1, uint address2, byte[] buffer1, byte[] buffer2, ref int counter)
+        public static void dropColumn(ISysBot bot, uint address1, uint address2, byte[] buffer1, byte[] buffer2, ref int counter)
         {
             lock (botLock)
             {
-                if (bot == null)
-                {
-                    SendByteArray(socket, address1, buffer1, buffer1.Length, ref counter);
-                    SendByteArray(socket, address1 + mapOffset, buffer1, buffer1.Length, ref counter);
-                    SendByteArray(socket, address2, buffer2, buffer2.Length, ref counter);
-                    SendByteArray(socket, address2 + mapOffset, buffer2, buffer2.Length, ref counter);
-                }
-                else
-                {
-                    WriteLargeBytes(bot, address1, buffer1, buffer1.Length, ref counter);
-                    WriteLargeBytes(bot, address1 + mapOffset, buffer1, buffer1.Length, ref counter);
-                    WriteLargeBytes(bot, address2, buffer2, buffer2.Length, ref counter);
-                    WriteLargeBytes(bot, address2 + mapOffset, buffer2, buffer2.Length, ref counter);
-                }
+                bot.SendByteArrayWithCounter(buffer1, address1, ref counter);
+                bot.SendByteArrayWithCounter(buffer1, address1 + mapOffset, ref counter);
+                bot.SendByteArrayWithCounter(buffer2, address2, ref counter);
+                bot.SendByteArrayWithCounter(buffer2, address2 + mapOffset, ref counter);
             }
         }
 
-        public static void dropColumn2(Socket socket, USBBot bot, uint address1, uint address2, byte[] buffer1, byte[] buffer2)
+        public static void dropColumn2(ISysBot bot, uint address1, uint address2, byte[] buffer1, byte[] buffer2)
         {
             lock (botLock)
             {
-                if (bot == null)
-                {
-                    SendByteArray(socket, address1, buffer1, buffer1.Length);
-                    SendByteArray(socket, address1 + mapOffset, buffer1, buffer1.Length);
-                    SendByteArray(socket, address2, buffer2, buffer2.Length);
-                    SendByteArray(socket, address2 + mapOffset, buffer2, buffer2.Length);
-                }
-                else
-                {
-
-                }
+                bot.SendByteArray(buffer1, address1);
+                bot.SendByteArray(buffer1, address1 + mapOffset);
+                bot.SendByteArray(buffer2, address2);
+                bot.SendByteArray(buffer2, address2 + mapOffset);
             }
         }
 
@@ -2432,129 +1396,49 @@ namespace ACNHPoker
                 return partID + flip(itemId) + "01" + "00" + partID + flip(itemId) + "01" + "01";
         }
 
-        public static byte[] ReadByteArray8(Socket socket, long initAddr, int size, ref int counter)
+        public static byte[] ReadByteArray8(ISysBot bot, long initAddr, int size, ref int counter)
         {
             lock (botLock)
             {
-                // Read in small chunks
-                byte[] result = new byte[size];
-                const int maxBytesToReceive = 8192;
-                int received = 0;
-                int bytesToReceive;
-                while (received < size)
-                {
-                    bytesToReceive = (size - received > maxBytesToReceive) ? maxBytesToReceive : size - received;
-                    string bufferRepr = ReadToIntermediateString8(socket, initAddr + received, bytesToReceive);
-                    if (bufferRepr == null)
-                        return null;
-                    for (int i = 0; i < bytesToReceive; i++)
-                    {
-                        result[received + i] = Convert.ToByte(bufferRepr.Substring(i * 2, 2), 16);
-                    }
-                    received += bytesToReceive;
-                    counter++;
-                }
-                return result;
+                return bot.ReadByteArray8KWithCounter(initAddr, size, ref counter);
             }
         }
 
-        public static byte[] ReadByteArray8(Socket socket, long initAddr, int size)
+        public static byte[] ReadByteArray8(ISysBot bot, long initAddr, int size)
         {
             lock (botLock)
             {
-                // Read in small chunks
-                byte[] result = new byte[size];
-                const int maxBytesToReceive = 8192;
-                int received = 0;
-                int bytesToReceive;
-                while (received < size)
-                {
-                    bytesToReceive = (size - received > maxBytesToReceive) ? maxBytesToReceive : size - received;
-                    string bufferRepr = ReadToIntermediateString8(socket, initAddr + received, bytesToReceive);
-                    if (bufferRepr == null)
-                        return null;
-                    for (int i = 0; i < bytesToReceive; i++)
-                    {
-                        result[received + i] = Convert.ToByte(bufferRepr.Substring(i * 2, 2), 16);
-                    }
-                    received += bytesToReceive;
-                }
-                return result;
+                return bot.ReadByteArray8K(initAddr, size);
             }
         }
 
-        public static void SendByteArray8(Socket socket, long initAddr, byte[] buffer, int size, ref int counter)
+        public static void SendByteArray8(ISysBot bot, long initAddr, byte[] buffer, int size, ref int counter)
         {
+            System.Diagnostics.Debug.Assert(size == buffer.Length);
+
             lock (botLock)
-            {
-                const int maxBytesTosend = 8192;
-                int sent = 0;
-                int bytesToSend = 0;
-                StringBuilder dataTemp = new StringBuilder();
-                string msg;
-                while (sent < size)
-                {
-                    dataTemp.Clear();
-                    bytesToSend = (size - sent > maxBytesTosend) ? maxBytesTosend : size - sent;
-                    for (int i = 0; i < bytesToSend; i++)
-                    {
-                        dataTemp.Append(String.Format("{0:X2}", buffer[sent + i]));
-                    }
-                    msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", initAddr + sent, dataTemp.ToString());
-                    //Debug.Print(msg);
-                    SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    sent += bytesToSend;
-                    counter++;
-                }
+            {   
+                bot.SendByteArray8KWithCounter(buffer, initAddr, ref counter);
             }
         }
 
-        public static void SendByteArray8(Socket socket, long initAddr, byte[] buffer, int size)
+        public static void SendByteArray8(ISysBot bot, long initAddr, byte[] buffer, int size)
         {
+            System.Diagnostics.Debug.Assert(size == buffer.Length);
+
             lock (botLock)
             {
-                const int maxBytesTosend = 8192;
-                int sent = 0;
-                int bytesToSend = 0;
-                StringBuilder dataTemp = new StringBuilder();
-                string msg;
-                while (sent < size)
-                {
-                    dataTemp.Clear();
-                    bytesToSend = (size - sent > maxBytesTosend) ? maxBytesTosend : size - sent;
-                    for (int i = 0; i < bytesToSend; i++)
-                    {
-                        dataTemp.Append(String.Format("{0:X2}", buffer[sent + i]));
-                    }
-                    msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", initAddr + sent, dataTemp.ToString());
-                    //Debug.Print(msg);
-                    SendString(socket, Encoding.UTF8.GetBytes(msg));
-                    sent += bytesToSend;
-                }
+                bot.SendByteArray8K(buffer, initAddr);
             }
         }
 
-        private static string ReadToIntermediateString8(Socket socket, long address, int size)
-        {
-            lock (botLock)
-            {
-                string msg = String.Format("peek 0x{0:X8} {1}\r\n", address, size);
-                //Debug.Print(msg);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-                byte[] b = new byte[size * 2 + 64];
-                int first_rec = ReceiveString(socket, b);
-                //Debug.Print(String.Format("Received {0} Bytes", first_rec));
-                return Encoding.ASCII.GetString(b, 0, size * 2);
-            }
-        }
-
-        public static byte[] getVisitorName(Socket socket)
+        public static byte[] getVisitorName(ISysBot sysBot)
         {
             lock (botLock)
             {
 
-                byte[] b = ReadByteArray(socket, VisitorNameAddress, 20);
-                //Debug.Print("[Sys] Peek Visitor Name : " + VisitorNameAddress.ToString("X") + " " + "24");
+                byte[] b = sysBot.ReadByteArray(VisitorNameAddress, 20);
+                //Debug.Print($"[{sysBot.Id}] Peek Visitor Name : " + VisitorNameAddress.ToString("X") + " " + "24");
                 if (b == null)
                 {
                     MessageBox.Show("Wait something is wrong here!? \n\n peek " + VisitorNameAddress.ToString("X"));
@@ -2564,86 +1448,51 @@ namespace ACNHPoker
             }
         }
 
-        public static string getDodo(Socket socket, bool chi = false, USBBot bot = null)
+        public static string getDodo(ISysBot sysBot, bool chi = false)
         {
             lock (botLock)
             {
                 byte[] b;
 
-                if (bot == null)
-                {
-                    Debug.Print("[Sys] Peek : Dodo " + dodoAddress.ToString("X"));
-                    if (chi)
-                        b = ReadByteArray(socket, dodoAddress + ChineseLanguageOffset, 5);
-                    else
-                        b = ReadByteArray(socket, dodoAddress, 5);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Dodo");
-                        return "";
-                    }
-                }
+                Debug.Print($"[{sysBot.Id}] Peek : Dodo " + dodoAddress.ToString("X"));
+                if (chi)
+                    b = sysBot.ReadByteArray(dodoAddress + ChineseLanguageOffset, 5);
                 else
+                    b = sysBot.ReadByteArray(dodoAddress, 5);
+
+                if (b == null)
                 {
-                    Debug.Print("[Usb] Peek : Dodo " + dodoAddress.ToString("X"));
-
-                    b = bot.ReadBytes(dodoAddress, 5);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Dodo");
-                        return "";
-                    }
+                    MessageBox.Show("Wait something is wrong here!? \n\n Dodo");
+                    return "";
                 }
 
                 return Encoding.ASCII.GetString(b);
             }
         }
 
-        public static void sendBlankName(Socket socket)
+        public static void sendBlankName(ISysBot bot)
         {
             lock (botLock)
             {
                 byte[] empty = new byte[20];
-                SendByteArray(socket, VisitorNameAddress, empty, 20);
+                bot.SendByteArray(empty, VisitorNameAddress);
                 Debug.Print("Send Blank Name");
             }
         }
 
-        public static void SetTextSpeed(Socket socket, USBBot bot, bool chi)
+        public static void SetTextSpeed(ISysBot bot, bool chi)
         {
             lock (botLock)
             {
                 try
                 {
-                    if (bot == null)
+                    if (chi)
                     {
-                        string msg;
-
-                        if (chi)
-                        {
-                            msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (TextSpeedAddress + ChineseLanguageOffset).ToString("X"), "3");
-                            Debug.Print("Poke TextSpeedChi: " + msg);
-                            SendString(socket, Encoding.UTF8.GetBytes(msg));
-                        }
-                        else
-                        {
-                            msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", TextSpeedAddress.ToString("X"), "3");
-                            Debug.Print("Poke TextSpeed: " + msg);
-                            SendString(socket, Encoding.UTF8.GetBytes(msg));
-                        }
+                        bot.SendByteArray(stringToByte("3"), TextSpeedAddress);
                     }
                     else
                     {
-                        if (chi)
-                        {
-                            bot.WriteBytes(stringToByte("3"), TextSpeedAddress);
-                        }
-                        else
-                        {
-                            bot.WriteBytes(stringToByte("3"), TextSpeedAddress + ChineseLanguageOffset);
-                        }
+                        bot.SendByteArray(stringToByte("3"), TextSpeedAddress + ChineseLanguageOffset);
                     }
                 }
                 catch
@@ -2782,31 +1631,31 @@ namespace ACNHPoker
 
         public static byte[] FreezeRate(string rate) => Encode("configure freezeRate " + rate);
 
-        public static string getVersion(Socket socket)
+        public static string getVersion(ISysBot bot)
         {
             lock (botLock)
             {
+                Debug.Print($"[{bot.Id}] GetVersion");
+
+                bot.SendString(Version());
+
                 byte[] b = new byte[20];
-
-                Debug.Print("[Sys] GetVersion");
-
-                SendString(socket, Version());
-                ReceiveString(socket, b);
+                bot.ReceiveString(b);
 
                 return TrimFromZero(Encoding.UTF8.GetString(b).Replace("\n", String.Empty));
             }
         }
 
-        public static int GetFreezeCount(Socket socket)
+        public static int GetFreezeCount(ISysBot bot)
         {
             lock (botLock)
             {
-                byte[] b = new byte[3];
-
-                Debug.Print("[Sys] GetFreezeCount");
+                Debug.Print($"[{bot.Id}] GetFreezeCount");
                 Thread.Sleep(250);
-                SendString(socket, FreezeCount());
-                ReceiveString(socket, b);
+                bot.SendString(FreezeCount());
+
+                byte[] b = new byte[3];
+                bot.ReceiveString(b);
 
                 return ConvertHexByteStringToBytes(b)[0];
             }
@@ -2846,43 +1695,21 @@ namespace ACNHPoker
 
         private static bool IsNum(char c) => (uint)(c - '0') <= 9;
         private static bool IsHexUpper(char c) => (uint)(c - 'A') <= 5;
-        public static bool IsConnected(Socket socket)
-        {
-            try
-            {
-                return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-            }
-            catch (SocketException) { return false; }
-        }
 
-        public static string GetVisitorName(Socket socket, USBBot bot, int i)
+        public static string GetVisitorName(ISysBot sysBot, int i)
         {
             lock (botLock)
             {
                 byte[] b;
 
-                if (bot == null)
+                b = sysBot.ReadByteArray(VisitorList + i * VisitorListSize, 20);
+
+                if (b == null)
                 {
-
-                    b = ReadByteArray(socket, VisitorList + i * VisitorListSize, 20);
-
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Dodo");
-                        return "";
-                    }
+                    MessageBox.Show("Wait something is wrong here!? \n\n Dodo");
+                    return "";
                 }
-                else
-                {
-                    b = bot.ReadBytes((uint)(VisitorList + i * VisitorListSize), 20);
 
-                    if (b == null)
-                    {
-                        MessageBox.Show("Wait something is wrong here!? \n\n Dodo");
-                        return "";
-                    }
-                }
-                //Debug.Print("Byte : " + i + " " + ByteToHexString(b));
                 string tempName = Encoding.Unicode.GetString(b, 0, 20);
                 return tempName.Replace("\0", string.Empty);
             }
@@ -2933,28 +1760,16 @@ namespace ACNHPoker
                 return value.ToString();
         }
 
-        public static bool hasItemInFirstSlot(Socket socket, USBBot bot = null)
+        public static bool hasItemInFirstSlot(ISysBot sysBot)
         {
             lock (botLock)
             {
-                byte[] b;
-                if (bot == null)
-                {
-                    b = ReadByteArray(socket, ItemSlotBase, 4);
-                }
-                else
-                {
-                    b = bot.ReadBytes(ItemSlotBase, 4);
-                }
-
-                if (ByteToHexString(b).Equals("FEFF0000"))
-                    return false;
-                else
-                    return true;
+                byte[] b = sysBot.ReadByteArray(ItemSlotBase, 4);
+                return !ByteToHexString(b).Equals("FEFF0000");
             }
         }
 
-        public static List<string> GetVillagerList(Socket socket, USBBot bot = null)
+        public static List<string> GetVillagerList(ISysBot bot)
         {
             lock (botLock)
             {
@@ -2963,7 +1778,7 @@ namespace ACNHPoker
 
                 for (int i = 0; i < 10; i++)
                 {
-                    b = GetVillager(socket, bot, i, 0x2);
+                    b = GetVillager(bot, i, 0x2);
                     string InternalName = GetVillagerInternalName(b[0], b[1]);
                     VillagerList.Add(InternalName);
                 }
@@ -2971,31 +1786,23 @@ namespace ACNHPoker
             }
         }
 
-        public static async Task loadBoth(Socket socket, int villagerIndex, byte[] villager, int houseIndex, byte[] house)
+        public static async Task loadBoth(ISysBot bot, int villagerIndex, byte[] villager, int houseIndex, byte[] house)
         {
-            await Task.Run(() => SendByteArray(socket, VillagerAddress + (villagerIndex * VillagerSize), villager, (int)VillagerSize));
-            await Task.Run(() => SendByteArray(socket, VillagerHouseAddress + (houseIndex * (VillagerHouseSize)), house, (int)VillagerHouseSize));
-        }
-
-        public static async Task SetMoveout(Socket socket, int villagerIndex, string MoveoutFlag = "2", string ForceMoveoutFlag = "1")
-        {
+            System.Diagnostics.Debug.Assert(villager.Length == VillagerSize);
+            System.Diagnostics.Debug.Assert(house.Length == VillagerHouseSize);
             await Task.Run(() =>
             {
-                string msg;
-                msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (villagerIndex * VillagerSize) + VillagerMoveoutOffset).ToString("X"), MoveoutFlag);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (villagerIndex * VillagerSize) + VillagerForceMoveoutOffset).ToString("X"), ForceMoveoutFlag);
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
-
-                msg = String.Format("poke 0x{0:X8} 0x{1}\r\n", (VillagerAddress + (villagerIndex * VillagerSize) + VillagerAbandonHouseOffset).ToString("X"), "0");
-                SendString(socket, Encoding.UTF8.GetBytes(msg));
+                lock (botLock)
+                {
+                    bot.SendByteArray(villager, VillagerAddress + (villagerIndex * VillagerSize));
+                    bot.SendByteArray(house, VillagerHouseAddress + (houseIndex * (VillagerHouseSize)));
+                }
             });
         }
 
-        public static bool isChinese(Socket s, USBBot bot = null)
+        public static bool isChinese(ISysBot bot)
         {
-            byte[] b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress, 6);
+            byte[] b = Utilities.peekAddress(bot, Utilities.readTimeAddress, 6);
             string time = Utilities.ByteToHexString(b);
 
             Debug.Print(time);
@@ -3008,7 +1815,7 @@ namespace ACNHPoker
 
             if (year > 3000 || month > 12 || day > 31 || hour > 24 || min > 60) //Try for Chineses
             {
-                b = Utilities.peekAddress(s, bot, Utilities.readTimeAddress + Utilities.ChineseLanguageOffset, 6);
+                b = Utilities.peekAddress(bot, Utilities.readTimeAddress + Utilities.ChineseLanguageOffset, 6);
                 time = Utilities.ByteToHexString(b);
 
                 year = Convert.ToInt32(Utilities.flip(time.Substring(0, 4)), 16);

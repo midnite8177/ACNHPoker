@@ -526,7 +526,7 @@ namespace ACNHPoker
 
             if (senderGrid.Columns[e.ColumnIndex] is DataGridViewButtonColumn && e.RowIndex >= 0)
             {
-                if ((s == null || s.Connected == false) & bot == null)
+                if (_sysBot == null || _sysBot.Connected == false)
                 {
                     MessageBox.Show("Please connect to the switch first");
                     return;
@@ -631,7 +631,7 @@ namespace ACNHPoker
         private void setSpawnRate(byte[] source, int size, int index, int mode, int type)
         {
 
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || _sysBot.Connected == false)
             {
                 MessageBox.Show("Please connect to the switch first");
                 return;
@@ -670,14 +670,14 @@ namespace ACNHPoker
                         b[i + 1] = 0;
                     }
                 //Debug.Print(Encoding.UTF8.GetString(Utilities.transform(b)));
-                Utilities.SendSpawnRate(s, bot, b, localIndex, type, ref counter);
+                Utilities.SendSpawnRate(_sysBot, b, localIndex, type, ref counter);
                 localIndex++;
                 if (mode == 1)
                 {
                     for (int i = 0; i < b.Length; i++)
                         b[i] = source[size * localIndex + 2 + i];
                 }
-                Utilities.SendSpawnRate(s, bot, b, localIndex, type, ref counter);
+                Utilities.SendSpawnRate(_sysBot, b, localIndex, type, ref counter);
             }
             catch (Exception e)
             {
@@ -794,7 +794,7 @@ namespace ACNHPoker
         #region Disable & Reset Button
         private void disableAllBtn_Click(object sender, EventArgs e)
         {
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || _sysBot.Connected == false)
             {
                 MessageBox.Show("Please connect to the switch first");
                 return;
@@ -894,7 +894,7 @@ namespace ACNHPoker
 
         private void resetAllBtn_Click(object sender, EventArgs e)
         {
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || _sysBot.Connected == false)
             {
                 MessageBox.Show("Please connect to the switch first");
                 return;
@@ -1125,7 +1125,7 @@ namespace ACNHPoker
         #region Read Data
         private void readDataBtn_Click(object sender, EventArgs e)
         {
-            if ((s == null || s.Connected == false) & bot == null)
+            if (_sysBot == null || _sysBot.Connected == false)
             {
                 MessageBox.Show("Please connect to the switch first");
                 return;
@@ -1144,7 +1144,7 @@ namespace ACNHPoker
             {
                 if (currentGridView == insectGridView)
                 {
-                    InsectAppearParam = Utilities.GetCritterData(s, bot, 0);
+                    InsectAppearParam = Utilities.GetCritterData(_sysBot, 0);
                     File.WriteAllBytes(insectAppearFileName, InsectAppearParam);
 
                     Invoke((MethodInvoker)delegate
@@ -1157,7 +1157,7 @@ namespace ACNHPoker
                 }
                 else if (currentGridView == riverFishGridView)
                 {
-                    FishRiverAppearParam = Utilities.GetCritterData(s, bot, 1);
+                    FishRiverAppearParam = Utilities.GetCritterData(_sysBot, 1);
                     File.WriteAllBytes(fishRiverAppearFileName, FishRiverAppearParam);
 
                     Invoke((MethodInvoker)delegate
@@ -1170,7 +1170,7 @@ namespace ACNHPoker
                 }
                 else if (currentGridView == seaFishGridView)
                 {
-                    FishSeaAppearParam = Utilities.GetCritterData(s, bot, 2);
+                    FishSeaAppearParam = Utilities.GetCritterData(_sysBot, 2);
                     File.WriteAllBytes(fishSeaAppearFileName, FishSeaAppearParam);
 
                     Invoke((MethodInvoker)delegate
@@ -1183,7 +1183,7 @@ namespace ACNHPoker
                 }
                 else if (currentGridView == seaCreatureGridView)
                 {
-                    CreatureSeaAppearParam = Utilities.GetCritterData(s, bot, 3);
+                    CreatureSeaAppearParam = Utilities.GetCritterData(_sysBot, 3);
                     File.WriteAllBytes(CreatureSeaAppearFileName, CreatureSeaAppearParam);
 
                     Invoke((MethodInvoker)delegate
