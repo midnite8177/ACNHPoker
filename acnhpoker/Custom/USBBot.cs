@@ -20,7 +20,7 @@ namespace ACNHPoker
         public int MaximumTransferSize { get { return 468; } }
 
         private static readonly Encoding Encoder = Encoding.UTF8;
-        private static byte[] Encode(string command, bool addrn = true) => Encoder.GetBytes(addrn ? command + "\r\n" : command + "\0\0");
+        private static byte[] Encode(string command, bool addrn = true) => Encoder.GetBytes(addrn ? command + "\r\n" : command);
 
         public static byte[] PokeRaw(long offset, byte[] data) => Encode($"poke 0x{offset:X8} 0x{string.Concat(data.Select(z => $"{z:X2}"))}", false);
 
@@ -196,19 +196,42 @@ namespace ACNHPoker
             // read the size of the transfer ahead (4-bytes)
             byte[] sizeOfReturn = new byte[4];
             ReadInternalHelper(sizeOfReturn, out var xferLengthLen);
-            if( xferLengthLen != 4 )
+            if (xferLengthLen != 4)
                 throw new Exception("USB Read: Expected 4 bytes");
 
             // how much data is coming?
             uint xferLength = BitConverter.ToUInt32(sizeOfReturn, 0);
-            if( xferLength != buffer.Length )
+
+            if (xferLength == (buffer.Length * 2) + 1)
+            {
+                // sysbot-base mode of ASCII transmission
+                byte[] tempBuffer = new byte[xferLength];
+                ReadInternalHelper(tempBuffer, out var lenTempBuffer);
+                if (lenTempBuffer != xferLength)
+                {
+                    Console.WriteLine("USB READ: Read {0} bytes, but there are {1} in the pipe", lenTempBuffer, xferLength);
+                }
+
+                // ugh.
+                string str = ASCIIEncoding.ASCII.GetString(tempBuffer);
+
+                int bufferLen = buffer.Length;
+                for (int i = 0; i < bufferLen; i++)
+                {
+                    buffer[i] = Convert.ToByte(str.Substring(i * 2, 2), 16);
+                }
+
+                return bufferLen;
+            }
+
+            if (xferLength != buffer.Length)
             {
                 Console.WriteLine("USB READ: {0} bytes in, but only reading {1}", xferLength, buffer.Length);
             }
 
             // read the payload (xferLength bytes)
             ReadInternalHelper(buffer, out var lenVal);
-            if( lenVal != xferLength )
+            if (lenVal != xferLength)
             {
                 Console.WriteLine("USB READ: Read {0} bytes, but there are {1} in the pipe", lenVal, xferLength);
             }
