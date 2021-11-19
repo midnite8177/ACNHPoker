@@ -14,7 +14,7 @@ using System.Windows.Forms;
 
 namespace ACNHPoker
 {
-    class Utilities
+    static class Utilities
     {
         public static UInt32 masterAddress = 0xAF70D6E0; 
 
@@ -149,19 +149,19 @@ namespace ACNHPoker
         public static UInt32 player8House21Base = player8HouseBase + 0xA0;
 
         // ---- Critter
-        public static UInt32 InsectAppearPointer = 0x404C4BF8;
+        public static UInt32 InsectAppearPointer = 0x404C4D18; //0x404C4BF8;
         public static Int32 InsectDataSize = 2 * (1 + 6 * 12 + 5);
         public static Int32 InsectNumRecords = 166;
 
         public static Int32 FishDataSize = 88;
 
-        public static UInt32 FishRiverAppearPointer = 0x40504388; 
+        public static UInt32 FishRiverAppearPointer = 0x405044A8; //0x40504388; 
         public static Int32 FishRiverNumRecords = 100;
 
-        public static UInt32 FishSeaAppearPointer = 0x4051A568;
+        public static UInt32 FishSeaAppearPointer = 0x4051A688; //0x4051A568;
         public static Int32 FishSeaNumRecords = 76;
 
-        public static UInt32 CreatureSeaAppearPointer = 0x4048688C;
+        public static UInt32 CreatureSeaAppearPointer = 0x404869AC; //0x4048688C;
         public static Int32 SeaCreatureDataSize = 88;
         public static Int32 SeaCreatureNumRecords = 41 * 2;
         // ----
@@ -181,13 +181,13 @@ namespace ACNHPoker
         public static readonly string freezeTimeValue = "D503201F";
         public static readonly string unfreezeTimeValue = "F9203260";
 
-        public static UInt32 wSpeedAddress = 0x01605E20; //0x01605DF0;
+        public static UInt32 wSpeedAddress = 0x01605E90; // 0x01605E20; //0x01605DF0;
         public static readonly string wSpeedX1 = "BD578661";
         public static readonly string wSpeedX2 = "1E201001";
         public static readonly string wSpeedX3 = "1E211001";
         public static readonly string wSpeedX4 = "1E221001";
 
-        public static UInt32 CollisionAddress = 0x01554D80; //0x01554D50;
+        public static UInt32 CollisionAddress = 0x01554DF0; // 0x01554D80; //0x01554D50;
         public static readonly string CollisionDisable = "12800014";
         public static readonly string CollisionEnable = "B95BA014";
 
@@ -251,11 +251,6 @@ namespace ACNHPoker
         public static Dictionary<string, string> itemkind = new Dictionary<string, string>();
 
         private static Object botLock = new Object();
-
-        public Utilities()
-        {
-
-        }
 
         public static void buildDictionary()
         {

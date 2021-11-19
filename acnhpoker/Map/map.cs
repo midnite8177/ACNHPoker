@@ -58,6 +58,7 @@ namespace ACNHPoker
         private DataTable currentDataTable;
         private bool sound;
         private bool ignore = false;
+        public static int numOfColumn = 0;
 
         byte[] Layer1 = null;
         byte[] Layer2 = null;
@@ -1227,6 +1228,7 @@ namespace ACNHPoker
 
                         selectedItem.setup(name, Convert.ToUInt16("0x" + id, 16), Convert.ToUInt32("0x" + hexValue, 16), GetImagePathFromID(id, fieldSource), true, "");
                     }
+                    
                     if (selection != null)
                     {
                         string hexValue = "00000000";
@@ -1240,6 +1242,7 @@ namespace ACNHPoker
 
                         selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng", Utilities.precedingZeros(hexValue, 8));
                     }
+                    
                     //updateSelectedItemInfo(selectedItem.displayItemName(), selectedItem.displayItemID(), selectedItem.displayItemData());
 
                 }
@@ -2664,6 +2667,8 @@ namespace ACNHPoker
                 e.Handled = true;
             }
             if (c >= 'a' && c <= 'f') e.KeyChar = char.ToUpper(c);
+
+            updateVariation();
         }
 
         private void Hex_KeyUp(object sender, KeyEventArgs e)
@@ -2694,60 +2699,6 @@ namespace ACNHPoker
             else
             {
                 selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + itemData, 16)), true, "", "00", flag2);
-            }
-        }
-
-        private void Hex_ValueChanged(object sender, EventArgs e)
-        {
-            if (IdTextbox.Text.Equals(string.Empty) || HexTextbox.Text.Equals(string.Empty))
-                return;
-
-            long data = Convert.ToUInt32(((RichTextBox)(sender)).Text.ToString(), 16);
-            string hexValue = data.ToString("X");
-
-            string itemID = Utilities.precedingZeros(IdTextbox.Text, 4);
-            string itemData = Utilities.precedingZeros(hexValue, 8);
-            string flag2 = Utilities.precedingZeros(FlagTextbox.Text, 2);
-
-            UInt16 IntId = Convert.ToUInt16("0x" + itemID, 16);
-            string front = Utilities.precedingZeros(itemData, 8).Substring(0, 4);
-            string back = Utilities.precedingZeros(itemData, 8).Substring(4, 4);
-
-            if (itemID.Equals("315A") || itemID.Equals("1618") || itemID.Equals("342F"))
-            {
-                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source), true, GetImagePathFromID(Utilities.turn2bytes(itemData), source), "00", flag2);
-            }
-            else if (itemID.Equals("16A2"))
-            {
-                selectedItem.setup(GetNameFromID(itemID, recipeSource), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(Utilities.turn2bytes(itemData), recipeSource), true, "", "00", flag2);
-            }
-            else if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
-            {
-                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + front, 16)), true, "", "00", flag2);
-            }
-            else
-            {
-                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + itemData, 16)), true, "", "00", flag2);
-            }
-
-            if (selection != null)
-            {
-                //selection.Dispose();
-                string id = Utilities.precedingZeros(selectedItem.fillItemID(), 4);
-                string value = Utilities.precedingZeros(selectedItem.fillItemData(), 8);
-
-                if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
-                {
-                    selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng", value);
-                }
-                else if (id == "315A" || id == "1618" || id == "342F")
-                {
-                    selection.receiveID(Utilities.turn2bytes(selectedItem.fillItemData()), "eng");
-                }
-                else
-                {
-                    selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng");
-                }
             }
         }
 
@@ -2794,6 +2745,8 @@ namespace ACNHPoker
             {
                 HexTextbox.Text = "00000000";
             }
+
+            updateVariation();
         }
 
         #region Refresh
@@ -5203,6 +5156,248 @@ namespace ACNHPoker
                             return;
                         }
                     }
+                }
+            }
+        }
+
+        private void placeVariationBtn_Click(object sender, EventArgs e)
+        {
+            if (IdTextbox.Text == "" || HexTextbox.Text == "" || FlagTextbox.Text == "")
+            {
+                return;
+            }
+
+            string flag1 = selectedItem.getFlag1();
+            string flag2 = Utilities.precedingZeros(FlagTextbox.Text, 2);
+
+            inventorySlot[,] variationList = variation.getVariationList(IdTextbox.Text, flag1, flag2, HexTextbox.Text);
+            byte[][] spawnArea = null;
+
+
+            if (variationList != null)
+            {
+
+                int TopLeftX = selectedButton.mapX;
+                int TopLeftY = selectedButton.mapY;
+                int row;
+                int column;
+                int BottomRightX = 0;
+                int BottomRightY= 0;
+
+                int main = variationList.GetLength(0);
+                int sub = variationList.GetLength(1);
+
+                if (main > 1 && sub > 1)
+                {
+                    variationSpawn variationSpawner = new variationSpawn(variationList);
+                    int result = (int)variationSpawner.ShowDialog(this);
+
+                    if (result == 1) // Main
+                    {
+                        BottomRightX = selectedButton.mapX + numOfColumn - 1;
+                        row = variationList.GetLength(0);
+                        BottomRightY = TopLeftY + row - 1;
+                        spawnArea = buildVariationArea(variationList, row, numOfColumn, 1);
+                    }
+                    else if (result == 6) // Sub
+                    {
+                        BottomRightX = selectedButton.mapX + numOfColumn - 1;
+                        row = variationList.GetLength(1);
+                        BottomRightY = TopLeftY + row - 1;
+                        spawnArea = buildVariationArea(variationList, row, numOfColumn, 6);
+                    }
+                    else if (result == 5) // All
+                    {
+                        BottomRightX = selectedButton.mapX + main - 1;
+                        row = sub;
+                        column = main;
+                        BottomRightY = TopLeftY + row - 1;
+                        spawnArea = buildVariationArea(variationList, row, column, 5);
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+                }
+                else
+                {
+                    variationSpawn variationSpawner = new variationSpawn(variationList);
+                    int result = (int)variationSpawner.ShowDialog(this);
+
+                    if (result == 1) // Main
+                    {
+                        BottomRightX = selectedButton.mapX + numOfColumn - 1;
+                        row = variationList.GetLength(0);
+                        BottomRightY = TopLeftY + row - 1;
+                        spawnArea = buildVariationArea(variationList, row, numOfColumn, 1);
+                    }
+                    else if (result == 6) // Sub
+                    {
+                        BottomRightX = selectedButton.mapX + numOfColumn - 1;
+                        row = variationList.GetLength(1);
+                        BottomRightY = TopLeftY + row - 1;
+                        spawnArea = buildVariationArea(variationList, row, numOfColumn, 6);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+
+
+
+                long address;
+
+                if (layer1Btn.Checked)
+                {
+                    address = Utilities.mapZero;
+                }
+                else if (layer2Btn.Checked)
+                {
+                    address = Utilities.mapZero + Utilities.mapSize;
+                }
+                else
+                    return;
+
+                disableBtn();
+
+                btnToolTip.RemoveAll();
+
+                Thread SpawnThread = new Thread(delegate () { areaSpawnThread(address, spawnArea, TopLeftX, TopLeftY, BottomRightX, BottomRightY); });
+                SpawnThread.Start();
+            }
+            else
+            {
+                myMessageBox.Show("No variation found for the selected item!", "Error 404", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+        }
+
+        private byte[][] buildVariationArea(inventorySlot[,] variation, int numberOfRow, int multiple = 1, int mode = 1)
+        {
+            int numberOfColumn = multiple;
+            int sizeOfRow = 16;
+
+            byte[][] b = new byte[numberOfColumn * 2][];
+
+            for (int i = 0; i < numberOfColumn * 2; i++)
+            {
+                b[i] = new byte[numberOfRow * sizeOfRow];
+            }
+
+            if (mode == 1) // Main
+            {
+                for (int i = 0; i < numberOfColumn; i++)
+                {
+                    for (int j = 0; j < numberOfRow; j++)
+                    {
+                        string itemID = Utilities.precedingZeros(variation[j, 0].fillItemID(), 4);
+                        string itemData = Utilities.precedingZeros(variation[j, 0].fillItemData(), 8);
+                        string flag1 = Utilities.precedingZeros(variation[j, 0].getFlag1(), 2);
+                        string flag2 = Utilities.precedingZeros(variation[j, 0].getFlag2(), 2);
+
+                        byte[] ItemLeft = Utilities.stringToByte(Utilities.buildDropStringLeft(itemID, itemData, flag1, flag2));
+                        byte[] ItemRight = Utilities.stringToByte(Utilities.buildDropStringRight(itemID));
+
+                        Buffer.BlockCopy(ItemLeft, 0, b[i * 2], 0x10 * j, 16);
+                        Buffer.BlockCopy(ItemRight, 0, b[i * 2 + 1], 0x10 * j, 16);
+                    }
+                }
+            }
+            else if (mode == 6) // Sub
+            {
+                for (int i = 0; i < numberOfColumn; i++)
+                {
+                    for (int j = 0; j < numberOfRow; j++)
+                    {
+                        string itemID = Utilities.precedingZeros(variation[0, j].fillItemID(), 4);
+                        string itemData = Utilities.precedingZeros(variation[0, j].fillItemData(), 8);
+                        string flag1 = Utilities.precedingZeros(variation[0, j].getFlag1(), 2);
+                        string flag2 = Utilities.precedingZeros(variation[0, j].getFlag2(), 2);
+
+                        byte[] ItemLeft = Utilities.stringToByte(Utilities.buildDropStringLeft(itemID, itemData, flag1, flag2));
+                        byte[] ItemRight = Utilities.stringToByte(Utilities.buildDropStringRight(itemID));
+
+                        Buffer.BlockCopy(ItemLeft, 0, b[i * 2], 0x10 * j, 16);
+                        Buffer.BlockCopy(ItemRight, 0, b[i * 2 + 1], 0x10 * j, 16);
+                    }
+                }
+            }
+            else // All
+            {
+                for (int i = 0; i < numberOfColumn; i++)
+                {
+                    for (int j = 0; j < numberOfRow; j++)
+                    {
+                        string itemID = Utilities.precedingZeros(variation[i, j].fillItemID(), 4);
+                        string itemData = Utilities.precedingZeros(variation[i, j].fillItemData(), 8);
+                        string flag1 = Utilities.precedingZeros(variation[i, j].getFlag1(), 2);
+                        string flag2 = Utilities.precedingZeros(variation[i, j].getFlag2(), 2);
+
+                        byte[] ItemLeft = Utilities.stringToByte(Utilities.buildDropStringLeft(itemID, itemData, flag1, flag2));
+                        byte[] ItemRight = Utilities.stringToByte(Utilities.buildDropStringRight(itemID));
+
+                        Buffer.BlockCopy(ItemLeft, 0, b[i * 2], 0x10 * j, 16);
+                        Buffer.BlockCopy(ItemRight, 0, b[i * 2 + 1], 0x10 * j, 16);
+                    }
+                }
+            }
+
+            return b;
+        }
+
+        private void updateVariation()
+        {
+            if (IdTextbox.Text.Equals(string.Empty) || HexTextbox.Text.Equals(string.Empty))
+                return;
+
+            long data = Convert.ToUInt32(HexTextbox.Text.ToString(), 16);
+            string hexValue = data.ToString("X");
+
+            string itemID = Utilities.precedingZeros(IdTextbox.Text, 4);
+            string itemData = Utilities.precedingZeros(hexValue, 8);
+            string flag2 = Utilities.precedingZeros(FlagTextbox.Text, 2);
+
+            UInt16 IntId = Convert.ToUInt16("0x" + itemID, 16);
+            string front = Utilities.precedingZeros(itemData, 8).Substring(0, 4);
+            string back = Utilities.precedingZeros(itemData, 8).Substring(4, 4);
+
+            if (itemID.Equals("315A") || itemID.Equals("1618") || itemID.Equals("342F"))
+            {
+                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source), true, GetImagePathFromID(Utilities.turn2bytes(itemData), source), "00", flag2);
+            }
+            else if (itemID.Equals("16A2"))
+            {
+                selectedItem.setup(GetNameFromID(itemID, recipeSource), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(Utilities.turn2bytes(itemData), recipeSource), true, "", "00", flag2);
+            }
+            else if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+            {
+                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + front, 16)), true, "", "00", flag2);
+            }
+            else
+            {
+                selectedItem.setup(GetNameFromID(itemID, source), Convert.ToUInt16("0x" + itemID, 16), Convert.ToUInt32("0x" + itemData, 16), GetImagePathFromID(itemID, source, Convert.ToUInt32("0x" + itemData, 16)), true, "", "00", flag2);
+            }
+
+            if (selection != null)
+            {
+                //selection.Dispose();
+                string id = Utilities.precedingZeros(selectedItem.fillItemID(), 4);
+                string value = Utilities.precedingZeros(selectedItem.fillItemData(), 8);
+
+                if (ItemAttr.hasFenceWithVariation(IntId))  // Fence Variation
+                {
+                    selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng", value);
+                }
+                else if (id == "315A" || id == "1618" || id == "342F")
+                {
+                    selection.receiveID(Utilities.turn2bytes(selectedItem.fillItemData()), "eng");
+                }
+                else
+                {
+                    selection.receiveID(Utilities.precedingZeros(selectedItem.fillItemID(), 4), "eng");
                 }
             }
         }

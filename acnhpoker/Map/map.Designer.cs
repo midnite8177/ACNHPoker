@@ -135,6 +135,7 @@ namespace ACNHPoker
             this.FlagTextbox = new HexUpDown();
             this.LayerPanel = new System.Windows.Forms.Panel();
             this.functionPanel = new System.Windows.Forms.Panel();
+            this.placeVariationBtn = new System.Windows.Forms.Button();
             this.variationBtn = new System.Windows.Forms.Button();
             this.PleaseWaitPanel = new System.Windows.Forms.Panel();
             this.WaitMessagebox = new System.Windows.Forms.RichTextBox();
@@ -667,14 +668,14 @@ namespace ACNHPoker
             this.flag00ToolStripMenuItem});
             this.floorRightClick.Name = "floorRightClick";
             this.floorRightClick.ShowImageMargin = false;
-            this.floorRightClick.Size = new System.Drawing.Size(156, 136);
+            this.floorRightClick.Size = new System.Drawing.Size(136, 114);
             this.floorRightClick.Opening += new System.ComponentModel.CancelEventHandler(this.floorRightClick_Opening);
             // 
             // copyItemToolStripMenuItem
             // 
             this.copyItemToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.copyItemToolStripMenuItem.Name = "copyItemToolStripMenuItem";
-            this.copyItemToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.copyItemToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.copyItemToolStripMenuItem.Text = "Copy Item";
             this.copyItemToolStripMenuItem.Click += new System.EventHandler(this.copyItemToolStripMenuItem_Click);
             // 
@@ -682,7 +683,7 @@ namespace ACNHPoker
             // 
             this.deleteToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.deleteToolStripMenuItem.Text = "Delete Item";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
@@ -690,7 +691,7 @@ namespace ACNHPoker
             // 
             this.replaceItemToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.replaceItemToolStripMenuItem.Name = "replaceItemToolStripMenuItem";
-            this.replaceItemToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.replaceItemToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.replaceItemToolStripMenuItem.Text = "Replace Item";
             this.replaceItemToolStripMenuItem.Click += new System.EventHandler(this.replaceItemToolStripMenuItem_Click);
             // 
@@ -698,7 +699,7 @@ namespace ACNHPoker
             // 
             this.flag20ToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.flag20ToolStripMenuItem.Name = "flag20ToolStripMenuItem";
-            this.flag20ToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.flag20ToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.flag20ToolStripMenuItem.Text = "Flag to 20";
             this.flag20ToolStripMenuItem.Click += new System.EventHandler(this.flag20ToolStripMenuItem_Click);
             // 
@@ -706,7 +707,7 @@ namespace ACNHPoker
             // 
             this.flag00ToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.flag00ToolStripMenuItem.Name = "flag00ToolStripMenuItem";
-            this.flag00ToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.flag00ToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.flag00ToolStripMenuItem.Text = "Flag to 00";
             this.flag00ToolStripMenuItem.Click += new System.EventHandler(this.flag00ToolStripMenuItem_Click);
             // 
@@ -2750,6 +2751,7 @@ namespace ACNHPoker
             this.functionPanel.Controls.Add(this.clearGridBtn);
             this.functionPanel.Controls.Add(this.bulkSpawnBtn);
             this.functionPanel.Controls.Add(this.loadBtn);
+            this.functionPanel.Controls.Add(this.placeVariationBtn);
             this.functionPanel.Controls.Add(this.fillRemainBtn);
             this.functionPanel.Controls.Add(this.saveBtn);
             this.functionPanel.Controls.Add(this.refreshBtn);
@@ -2760,6 +2762,22 @@ namespace ACNHPoker
             this.functionPanel.Name = "functionPanel";
             this.functionPanel.Size = new System.Drawing.Size(175, 532);
             this.functionPanel.TabIndex = 187;
+            // 
+            // placeVariationBtn
+            // 
+            this.placeVariationBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
+            this.placeVariationBtn.FlatAppearance.BorderSize = 0;
+            this.placeVariationBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.placeVariationBtn.Font = new System.Drawing.Font("Arial", 9.75F, System.Drawing.FontStyle.Bold);
+            this.placeVariationBtn.ForeColor = System.Drawing.Color.White;
+            this.placeVariationBtn.Location = new System.Drawing.Point(17, 500);
+            this.placeVariationBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.placeVariationBtn.Name = "placeVariationBtn";
+            this.placeVariationBtn.Size = new System.Drawing.Size(138, 28);
+            this.placeVariationBtn.TabIndex = 225;
+            this.placeVariationBtn.Text = "Place Variation";
+            this.placeVariationBtn.UseVisualStyleBackColor = false;
+            this.placeVariationBtn.Click += new System.EventHandler(this.placeVariationBtn_Click);
             // 
             // variationBtn
             // 
@@ -3102,7 +3120,6 @@ namespace ACNHPoker
             this.HexTextbox.Size = new System.Drawing.Size(229, 38);
             this.HexTextbox.TabIndex = 233;
             this.HexTextbox.Text = "00000000";
-            this.HexTextbox.TextChanged += new System.EventHandler(this.Hex_ValueChanged);
             this.HexTextbox.DoubleClick += new System.EventHandler(this.HexTextbox_DoubleClick);
             this.HexTextbox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Hex_KeyPress);
             // 
@@ -3186,6 +3203,7 @@ namespace ACNHPoker
             this.MaximumSize = new System.Drawing.Size(1220, 1000);
             this.MinimumSize = new System.Drawing.Size(1220, 670);
             this.Name = "map";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Map Dropper";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.map_FormClosed);
             this.LocationChanged += new System.EventHandler(this.map_LocationChanged);
@@ -3346,5 +3364,6 @@ namespace ACNHPoker
         private System.Windows.Forms.RichTextBox HexTextbox;
         private System.Windows.Forms.ToolStripMenuItem flag20ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem flag00ToolStripMenuItem;
+        private System.Windows.Forms.Button placeVariationBtn;
     }
 }
