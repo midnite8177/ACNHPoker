@@ -4,7 +4,7 @@
 
    1. Spawns items for you on Animal Crossing New Horizons using [sys-botbase](https://github.com/olliz0r/sys-botbase) or [USB-Botbase](https://github.com/fishguy6564/USB-Botbase).
    2. Manipulate in-game critter spawn rate.
-   3. Contorl turnip buying/selling price.
+   3. Control turnip buying/selling price.
    4. Uncover your weather seed for [MeteoNook](https://wuffs.org/acnh/weather/)
    5. And more
 
@@ -269,6 +269,11 @@ https://youtu.be/-zztRgmtXig
 	* Update to use v2 villager house (.nhv2)
 	* Fixed a bug where interacting with the villager house might crash the game.
 	* Fixed the Twitch villager inject.
+* R18.5
+	* Update for Game version number 2.0.1
+* R18.6
+	* Update for Game version number 2.0.1
+	* Added	a dialog for variation spawning in "Map Dropper"
 
 ## Contributing
 

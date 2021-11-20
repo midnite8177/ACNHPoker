@@ -2414,12 +2414,11 @@
             // speedX4Btn
             // 
             this.speedX4Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
-            this.speedX4Btn.Enabled = false;
             this.speedX4Btn.FlatAppearance.BorderSize = 0;
             this.speedX4Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.speedX4Btn.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.speedX4Btn.ForeColor = System.Drawing.Color.White;
-            this.speedX4Btn.Location = new System.Drawing.Point(1111, 902);
+            this.speedX4Btn.Location = new System.Drawing.Point(892, 893);
             this.speedX4Btn.Name = "speedX4Btn";
             this.speedX4Btn.Size = new System.Drawing.Size(75, 24);
             this.speedX4Btn.TabIndex = 150;
@@ -2432,12 +2431,11 @@
             // speedX1Btn
             // 
             this.speedX1Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(255)))));
-            this.speedX1Btn.Enabled = false;
             this.speedX1Btn.FlatAppearance.BorderSize = 0;
             this.speedX1Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.speedX1Btn.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.speedX1Btn.ForeColor = System.Drawing.Color.White;
-            this.speedX1Btn.Location = new System.Drawing.Point(1354, 902);
+            this.speedX1Btn.Location = new System.Drawing.Point(1135, 893);
             this.speedX1Btn.Name = "speedX1Btn";
             this.speedX1Btn.Size = new System.Drawing.Size(75, 24);
             this.speedX1Btn.TabIndex = 151;
@@ -2843,12 +2841,11 @@
             // speedX2Btn
             // 
             this.speedX2Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
-            this.speedX2Btn.Enabled = false;
             this.speedX2Btn.FlatAppearance.BorderSize = 0;
             this.speedX2Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.speedX2Btn.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.speedX2Btn.ForeColor = System.Drawing.Color.White;
-            this.speedX2Btn.Location = new System.Drawing.Point(1273, 902);
+            this.speedX2Btn.Location = new System.Drawing.Point(1054, 893);
             this.speedX2Btn.Name = "speedX2Btn";
             this.speedX2Btn.Size = new System.Drawing.Size(75, 24);
             this.speedX2Btn.TabIndex = 168;
@@ -2860,12 +2857,11 @@
             // speedX3Btn
             // 
             this.speedX3Btn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(114)))), ((int)(((byte)(137)))), ((int)(((byte)(218)))));
-            this.speedX3Btn.Enabled = false;
             this.speedX3Btn.FlatAppearance.BorderSize = 0;
             this.speedX3Btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.speedX3Btn.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.speedX3Btn.ForeColor = System.Drawing.Color.White;
-            this.speedX3Btn.Location = new System.Drawing.Point(1192, 902);
+            this.speedX3Btn.Location = new System.Drawing.Point(973, 893);
             this.speedX3Btn.Name = "speedX3Btn";
             this.speedX3Btn.Size = new System.Drawing.Size(75, 24);
             this.speedX3Btn.TabIndex = 169;
@@ -3239,7 +3235,7 @@
             this.label20.AutoSize = true;
             this.label20.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
             this.label20.ForeColor = System.Drawing.Color.Gainsboro;
-            this.label20.Location = new System.Drawing.Point(1106, 876);
+            this.label20.Location = new System.Drawing.Point(887, 867);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(129, 22);
             this.label20.TabIndex = 149;

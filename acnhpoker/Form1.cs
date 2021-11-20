@@ -21,7 +21,7 @@ namespace ACNHPoker
         private Socket _s = null;
         private USBBot _bot = null;
         private ISysBot _sysBot = null;
-        private string version = "ACNH Poker R18.4.1 for v2.0.1";
+        private string version = "ACNH Poker R18.6.1 for v2.0.2";
         private inventorySlot selectedButton;
         private Villager[] V = null;
         private Button[] villagerButton = null;
@@ -1062,7 +1062,7 @@ namespace ACNHPoker
         {
             for (int i = 0; i < 10; i++)
             {
-                //byte[] b = _sysBot.ReadByteArray(Utilities.VillagerBuffer1 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
+                //byte[] b = Utilities.ReadByteArray(_sysBot, Utilities.VillagerBuffer1 + (i * Utilities.VillagerSize), (int)Utilities.VillagerSize, ref counter);
                 //File.WriteAllBytes(file.FileName + i, b);
             }
         }
